@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>個人看板</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>個人看板</h1>
+    <nav>
+      <button class="tab active" data-tab="projects">專案</button>
+      <button class="tab" data-tab="files">檔案</button>
+      <button class="tab" data-tab="memory">記憶</button>
+      <button class="tab" data-tab="research">研究</button>
+      <button class="tab" data-tab="jobs">定時作業</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="projects" class="tab-content active">
+      <div class="grid" id="projects-grid"></div>
+    </section>
+    <section id="files" class="tab-content">
+      <div class="grid" id="files-grid"></div>
+    </section>
+    <section id="memory" class="tab-content">
+      <div class="grid" id="memory-grid"></div>
+    </section>
+    <section id="research" class="tab-content">
+      <div class="grid" id="research-grid"></div>
+    </section>
+    <section id="jobs" class="tab-content">
+      <div class="grid" id="jobs-grid"></div>
+    </section>
+  </main>
+
+  <footer>
+    最後更新：<span id="last-updated"></span>
+  </footer>
+
+  <script src="js/app.js"></script>
+</body>
+</html>

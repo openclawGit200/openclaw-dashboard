@@ -1,0 +1,48 @@
+{
+  "projects": [
+    {
+      "id": "cf-search",
+      "title": "CF 多引擎搜尋",
+      "description": "18 引擎 cascade fallback，支援 Google/Bing/Baidu/搜狗/頭條等，解決封鎖問題",
+      "status": "active",
+      "progress": 90,
+      "tags": ["cloudflare", "search", "twse"],
+      "lastUpdated": "2026-04-07",
+      "completed": ["移除 Sogou（觸發反爬）", "部署至 GitHub Actions", "17→18 引擎升級"],
+      "pending": ["Custom domain 設定（search.downtoearthclf.ddns-ip.net）"]
+    },
+    {
+      "id": "stock-report-email",
+      "title": "股票報告郵件自動化",
+      "description": "每週一～五 07:00 自動發送符合指標的標的，7 檔分析＋季報＋新聞",
+      "status": "active",
+      "progress": 80,
+      "tags": ["stock", "automation", "email"],
+      "lastUpdated": "2026-04-07",
+      "completed": ["補發機制（crontab error 時）", "飛書 delivery channel 設定", "季報爬蟲整合"],
+      "pending": ["Zhipu 額度不足時的新聞來源備案", "PDF OCR 整合（南港圖片掃描頁）"]
+    },
+    {
+      "id": "mempalace",
+      "title": "MemPalace 記憶系統",
+      "description": "本地向量記憶宮殿，1876 drawers，MCP 工具已設定，AI 可自動搜尋",
+      "status": "active",
+      "progress": 60,
+      "tags": ["memory", "mcp", "chroma"],
+      "lastUpdated": "2026-04-07",
+      "completed": ["pip 安裝（Chromadb 79MB）", "init + mine 完成", "MCP server 設定並重啟 Gateway"],
+      "pending": ["MCP 工具驗證（重啟後確認）", "與 OpenClaw Memory 的互補策略"]
+    },
+    {
+      "id": "cf-dashboard",
+      "title": "CF 個人看板",
+      "description": "Cloudflare Pages 純前端視覺化看板，四分類：專案/檔案/記憶/研究",
+      "status": "planning",
+      "progress": 10,
+      "tags": ["cloudflare", "dashboard", "ui"],
+      "lastUpdated": "2026-04-07",
+      "completed": ["需求分析"],
+      "pending": ["CF token 設定", "JSON schema 設計", "Dark card UI 建構", "Cron 更新腳本"]
+    }
+  ]
+}
