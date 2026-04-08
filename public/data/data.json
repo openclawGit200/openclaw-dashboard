@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-04-08T04:12:18.892Z",
+    "generated": "2026-04-08T04:42:51.453Z",
     "workspace": "/Users/downtoearth/.openclaw/workspace"
   },
   "projects": [
@@ -809,7 +809,7 @@
           },
           {
             "ok": true,
-            "text": "**CF Dashboard**：✅ v3 完成（統一記憶：notes+twse+memory+obsidian）；Jobs 改為中文名+可點擊看歷史；Research tab 移除；URL: `https://d74cc7e9.openclaw-dashboard-dv8.pages.dev/`；Repo: `openclawGit200/openclaw-dashboard`；⚠️ 自訂網域仍指向舊預設頁"
+            "text": "**CF Dashboard**：✅ v3 完成（統一記憶：notes+twse+memory+obsidian）；Jobs 改為中文名+可點擊看歷史；Research tab 移除；URL: `https://fb002d8b.openclaw-dashboard-dv8.pages.dev/`（2026-04-08）；Repo: `openclawGit200/openclaw-dashboard`；⚠️ 自訂網域 `openclaw-dashboard.pages.dev` 仍指向舊預設頁"
           },
           {
             "ok": true,
@@ -865,7 +865,7 @@
       {
         "id": "com.twse.semantic-sync",
         "name": "台股語意同步",
-        "trigger": "LaunchAgent",
+        "trigger": "LaunchAgent: 每週一 23:00",
         "schedule": "LaunchAgent",
         "nextRun": "—",
         "lastRun": "Status 0",
@@ -910,15 +910,15 @@
       {
         "id": "com.twse.crawler-sync",
         "name": "台股季報同步GITHUB",
-        "trigger": "LaunchAgent: 每週日",
+        "trigger": "LaunchAgent: 每週日 23:00",
         "schedule": "LaunchAgent",
         "nextRun": "—",
-        "lastRun": "Status 128",
-        "status": "stopped",
+        "lastRun": "Status 0",
+        "status": "running",
         "history": [
           {
-            "ok": false,
-            "message": "com.twse.crawler-sync — Status: 128, PID: -"
+            "ok": true,
+            "message": "com.twse.crawler-sync — Status: 0, PID: -"
           }
         ]
       }
