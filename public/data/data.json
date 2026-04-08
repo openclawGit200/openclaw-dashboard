@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-04-08T03:39:18.576Z",
+    "generated": "2026-04-08T03:48:14.535Z",
     "workspace": "/Users/downtoearth/.openclaw/workspace"
   },
   "projects": [
@@ -788,43 +788,25 @@
           "pid": "-"
         },
         {
-          "id": "lc-215",
+          "id": "lc-216",
           "label": "com.twse.semantic-sync",
           "status": "0",
           "pid": "-"
         },
         {
-          "id": "lc-225",
-          "label": "application.com.apple.Terminal.1152921500311913407.1152921500311913412",
-          "status": "0",
-          "pid": "839"
-        },
-        {
-          "id": "lc-247",
-          "label": "application.md.obsidian.1025235.1025242",
-          "status": "0",
-          "pid": "17155"
-        },
-        {
-          "id": "lc-275",
-          "label": "application.com.apple.Safari.166347.167231",
-          "status": "0",
-          "pid": "868"
-        },
-        {
-          "id": "lc-281",
+          "id": "lc-282",
           "label": "taiwan-stock-crawler",
           "status": "0",
           "pid": "-"
         },
         {
-          "id": "lc-287",
+          "id": "lc-288",
           "label": "ai.openclaw.gateway",
           "status": "1",
           "pid": "35441"
         },
         {
-          "id": "lc-344",
+          "id": "lc-345",
           "label": "com.twse.crawler-sync",
           "status": "128",
           "pid": "-"

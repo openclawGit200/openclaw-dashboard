@@ -203,13 +203,14 @@ function parseCron() {
 function parseLaunchctl() {
   const systemPrefixes = ['com.apple.','com.google.','com.microsoft.','com.ollama.ollama','com.openssh.','org.postgresql.','homebrew.mxcl.','io.bombich.','ru.croc.'];
   const isSystem = label => systemPrefixes.some(p => label.startsWith(p));
-  const isElectron = label => /^application\.com\.electron\.[^/]+$/.test(label);
+  // 過濾 macOS app instances（Electron、Safari、Terminal、Obsidian 等全部 application.* 前綴）
+  const isMacAppInstance = label => /^application\./.test(label);
   try {
     const out = execSync('launchctl list 2>/dev/null || echo ""', { encoding: 'utf8' });
     const lines = out.split('\n').slice(1).filter(l => l.trim());
     data.jobs.launchctl.items = lines
       .map((l,i) => { const p=l.split(/\t+/); return { id:`lc-${i}`, label:p[2]||p[1]||'', status:p[1]||'?', pid:p[0]||'-' }; })
-      .filter(i => i.label && !i.label.startsWith('-') && !isSystem(i.label) && !isElectron(i.label));
+      .filter(i => i.label && !i.label.startsWith('-') && !isSystem(i.label) && !isMacAppInstance(i.label));
   } catch { data.jobs.launchctl.items = []; }
 }
 
