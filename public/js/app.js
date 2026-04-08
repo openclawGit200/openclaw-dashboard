@@ -7,6 +7,7 @@ let memoryFilter = 'all';
 // ── Util ──────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const esc = s => s == null ? '' : String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const statusLabel = s => ({ active:'進行中', planning:'規劃中', completed:'已完成', onhold:'擱置' }[s] || s);
 
 function chip(label, value) {
   return `<span class="stat-chip"><span>${value}</span> ${label}</span>`;
