@@ -321,6 +321,27 @@
     </div>
   </div>
 
+  <!-- Memory Detail Modal -->
+  <div id="mem-modal" class="modal" style="display:none">
+    <div class="modal-backdrop" id="mem-modal-backdrop"></div>
+    <div class="modal-card" style="max-width:720px">
+      <div class="modal-header">
+        <div>
+          <div class="modal-job-name" id="mem-name"></div>
+          <div class="modal-job-trigger"><span class="source-badge" id="mem-source"></span></div>
+        </div>
+        <button class="modal-close" id="mem-close">✕</button>
+      </div>
+      <div id="mem-tags"></div>
+      <div id="mem-body" class="proj-body" style="white-space:pre-wrap;word-break:break-word;max-height:400px;overflow-y:auto"></div>
+      <div class="modal-meta" style="margin-top:16px">
+        <div class="modal-meta-item"><span class="modal-meta-label">路徑</span><span id="mem-path" style="font-size:12px;word-break:break-all"></span></div>
+        <div class="modal-meta-item"><span class="modal-meta-label">日期</span><span id="mem-date"></span></div>
+        <div class="modal-meta-item" id="mem-stock-row" style="display:none"><span class="modal-meta-label">股票</span><span id="mem-stock"></span></div>
+      </div>
+    </div>
+  </div>
+
   <div class="d3-tooltip" id="d3-tooltip"></div>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <script src="js/app.js"></script>

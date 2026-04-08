@@ -118,6 +118,7 @@ function closeProjectModal() {
 
 document.getElementById('pm-close').addEventListener('click', closeProjectModal);
 document.getElementById('proj-modal-backdrop').addEventListener('click', closeProjectModal);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeProjectModal(); closeMemoryModal(); closeJobModal(); } });
 
 // ── Projects ───────────────────────────────────────────────────────────────
 function renderProjects(items) {
@@ -183,7 +184,7 @@ function renderMemory(data) {
   if (!filtered.length) { grid.innerHTML = `<p class="empty">目前沒有 ${sourceLabel(memoryFilter)} 的記憶</p>`; return; }
 
   grid.innerHTML = filtered.map(m => `
-    <div class="card">
+    <div class="card memory-card" data-memory-id="${esc(m.id)}">
       <div class="card-header">
         <div class="card-title">${esc(m.title?.slice(0,40))}</div>
         <span class="source-badge ${esc(m.source)}">${sourceLabel(m.source)}</span>
@@ -192,10 +193,43 @@ function renderMemory(data) {
       ${m.description ? `<div class="desc">${esc(m.description.slice(0,100))}</div>` : ''}
       ${tagsHTML(m.tags, m.source)}
       ${m.connections && m.connections.length ? `<div class="card-meta">🔗 ${m.connections.length} 個關聯</div>` : ''}
-      <div class="card-meta">${m.date || ''}${m.path ? ' · ' + esc(m.path.slice(0,40)) : ''}</div>
+      <div class="card-meta" style="color:var(--accent);cursor:pointer">點擊查看完整內容 →</div>
     </div>
   `).join('');
+
+  grid.querySelectorAll('.memory-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.memoryId;
+      const item = filtered.find(m => m.id === id);
+      if (item) openMemoryModal(item);
+    });
+  });
 }
+
+// ── Memory Modal ──────────────────────────────────────────────────────────
+function openMemoryModal(item) {
+  $('mem-name').textContent = item.title || '';
+  $('mem-source').textContent = sourceLabel(item.source) || item.source || '';
+  $('mem-source').className = `source-badge ${esc(item.source)}`;
+  $('mem-tags').innerHTML = tagsHTML(item.tags, item.source);
+  $('mem-body').textContent = item.description || '（無內容）';
+  $('mem-path').textContent = item.path || '';
+  $('mem-date').textContent = item.date || '';
+  if (item.stockId) {
+    $('mem-stock-row').style.display = '';
+    $('mem-stock').textContent = `${item.stockId} ${item.companyName || ''}`;
+  } else {
+    $('mem-stock-row').style.display = 'none';
+  }
+  $('mem-modal').style.display = 'flex';
+}
+
+function closeMemoryModal() {
+  $('mem-modal').style.display = 'none';
+}
+
+document.getElementById('mem-close').addEventListener('click', closeMemoryModal);
+document.getElementById('mem-modal-backdrop').addEventListener('click', closeMemoryModal);
 
 // ── Jobs ──────────────────────────────────────────────────────────────────
 function openJobModal(job) {
