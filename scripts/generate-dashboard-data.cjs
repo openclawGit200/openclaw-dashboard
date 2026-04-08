@@ -260,8 +260,8 @@ function parseLaunchctl() {
     'ai.openclaw.gateway':   { name: 'OpenClaw Gateway',  trigger: 'LaunchAgent: 開機自動' },
     'ai.openclaw.github-backup': null, // 已由 parseGithubBackup 處理
     'com.twse.semantic-sync':  { name: '台股語意同步',      trigger: 'LaunchAgent' },
-    'com.twse.crawler-sync':   { name: '台股爬蟲同步',      trigger: 'LaunchAgent' },
-    'taiwan-stock-crawler':   { name: '台股季報爬蟲',      trigger: 'LaunchAgent' },
+    'com.twse.crawler-sync':   { name: '台股季報同步GITHUB', trigger: 'LaunchAgent: 每週日' },
+    'taiwan-stock-crawler':   { name: '台股季報爬蟲',       trigger: 'LaunchAgent: 每週六' },
   };
 
   try {

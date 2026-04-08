@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-04-08T03:55:42.024Z",
+    "generated": "2026-04-08T04:12:18.892Z",
     "workspace": "/Users/downtoearth/.openclaw/workspace"
   },
   "projects": [
@@ -809,6 +809,10 @@
           },
           {
             "ok": true,
+            "text": "**CF Dashboard**：✅ v3 完成（統一記憶：notes+twse+memory+obsidian）；Jobs 改為中文名+可點擊看歷史；Research tab 移除；URL: `https://d74cc7e9.openclaw-dashboard-dv8.pages.dev/`；Repo: `openclawGit200/openclaw-dashboard`；⚠️ 自訂網域仍指向舊預設頁"
+          },
+          {
+            "ok": true,
             "text": "**MemPalace 安裝**：✅ 已安裝（pip3 + 清華鏡像）；Palace 路徑 `~/.mempalace/palace`；1876 drawers（workspace）；無需 API Key"
           },
           {
@@ -876,7 +880,7 @@
       {
         "id": "taiwan-stock-crawler",
         "name": "台股季報爬蟲",
-        "trigger": "LaunchAgent",
+        "trigger": "LaunchAgent: 每週六",
         "schedule": "LaunchAgent",
         "nextRun": "—",
         "lastRun": "Status 0",
@@ -905,8 +909,8 @@
       },
       {
         "id": "com.twse.crawler-sync",
-        "name": "台股爬蟲同步",
-        "trigger": "LaunchAgent",
+        "name": "台股季報同步GITHUB",
+        "trigger": "LaunchAgent: 每週日",
         "schedule": "LaunchAgent",
         "nextRun": "—",
         "lastRun": "Status 128",
