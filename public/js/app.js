@@ -153,110 +153,68 @@ function renderMemory(data) {
 }
 
 // ── Jobs ──────────────────────────────────────────────────────────────────
-const JOB_CATEGORIES = {
-  '台股季報':    { icon: '📊',  badge: 'cron',      color: 'var(--yellow)' },
-  '台股郵件':    { icon: '📧',  badge: 'cron',      color: 'var(--yellow)' },
-  'github-backup':{ icon: '🔄', badge: 'launchctl',  color: 'var(--accent)' },
-  'gateway':     { icon: '🚀',  badge: 'launchctl',  color: 'var(--accent)' },
-  'semantic-sync':{ icon: '🔍', badge: 'launchctl', color: 'var(--accent)' },
-  'crawler-sync':{ icon: '🕷️', badge: 'launchctl',  color: 'var(--accent)' },
-  'stock-crawler':{ icon: '💹', badge: 'launchctl', color: 'var(--yellow)' },
-  'twse':        { icon: '📈',  badge: 'launchctl',  color: 'var(--yellow)' },
-};
-
-function guessCategory(label, command) {
-  const text = (label + ' ' + (command || '')).toLowerCase();
-  for (const [key, val] of Object.entries(JOB_CATEGORIES)) {
-    if (text.includes(key.toLowerCase())) return { ...val, name: key };
+function openJobModal(job) {
+  $('jm-name').textContent = job.name;
+  $('jm-trigger').textContent = job.trigger;
+  $('jm-next').textContent = job.nextRun || '—';
+  $('jm-last').textContent = job.lastRun || '—';
+  const histEl = $('jm-history');
+  if (!job.history || !job.history.length) {
+    histEl.innerHTML = '<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">暫無執行記錄</div>';
+  } else {
+    histEl.innerHTML = job.history.map(h => `
+      <div class="modal-hist-item">
+        <div class="modal-hist-dot ${h.ok ? 'modal-hist-ok' : 'modal-hist-fail'}"></div>
+        <div class="modal-hist-time">${esc(h.time || h.date || '')}</div>
+        <div class="modal-hist-msg">${esc(h.message || h.desc || '')}</div>
+      </div>
+    `).join('');
   }
-  return null;
+  $('job-modal').style.display = 'flex';
 }
 
-function cronToHuman(cron) {
-  if (!cron) return '';
-  const parts = cron.trim().split(/\s+/);
-  if (parts.length < 5) return cron;
-  const [min, hour, dom, mon, dow] = parts;
-  if (min === '0' && hour === '*') return '每小時';
-  if (min === '0' && hour === '0' && dow === '0') return '每週日 00:00';
-  if (dom === '*' && mon === '*' && dow !== '*') {
-    const dayNames = ['週日','週一','週二','週三','週四','週五','週六'];
-    return `每週${dayNames[parseInt(dow)] || dow} ${hour}:${min.padStart(2,'0')}`;
-  }
-  if (dom !== '*' && mon === '*' && dow === '*') return `每月 ${dom} 日`;
-  return cron;
+function closeJobModal() {
+  $('job-modal').style.display = 'none';
 }
+
+document.getElementById('jm-close').addEventListener('click', closeJobModal);
+document.querySelector('.modal-backdrop').addEventListener('click', closeJobModal);
 
 function renderJobs(jobs) {
   const list = $('jobs-list');
-  const sections = {};
-
-  // Heartbeat
-  if (jobs.heartbeat) {
-    sections['❤️ OpenClaw Heartbeat'] = {
-      icon: '❤️',
-      badge: 'heartbeat',
-      badgeColor: 'var(--green)',
-      rows: [{
-        label: '排程',
-        value: jobs.heartbeat.schedule || 'per heartbeat poll'
-      }, {
-        label: '下次',
-        value: jobs.heartbeat.next || '等待觸發'
-      }, {
-        label: '上次',
-        value: jobs.heartbeat.last || '未知'
-      }]
-    };
-  }
-
-  // Cron jobs
-  if (jobs.cron && jobs.cron.items && jobs.cron.items.length) {
-    for (const j of jobs.cron.items) {
-      const cat = guessCategory(j.label || j.command || '', j.command || '');
-      const name = j.label || cat?.name || j.id || 'Cron 任務';
-      if (!sections[name]) {
-        sections[name] = { icon: cat?.icon || '⏱', badge: cat?.badge || 'cron', badgeColor: cat?.color || 'var(--accent)', rows: [] };
-      }
-      sections[name].rows.push({ label: cronToHuman(j.cron), value: j.command || '' });
-    }
-  }
-
-  // Launchctl jobs
-  if (jobs.launchctl && jobs.launchctl.items && jobs.launchctl.items.length) {
-    for (const j of jobs.launchctl.items) {
-      const cat = guessCategory(j.label, '');
-      const name = j.label || cat?.name || 'Launchd 任務';
-      if (!sections[name]) {
-        sections[name] = { icon: cat?.icon || '🚀', badge: cat?.badge || 'launchctl', badgeColor: cat?.color || 'var(--yellow)', rows: [] };
-      }
-      sections[name].rows.push({
-        label: `PID ${j.pid !== '-' ? j.pid : '—'}`,
-        value: `Status: ${j.status}`
-      });
-    }
-  }
-
-  if (Object.keys(sections).length === 0) {
+  const items = jobs.items || [];
+  if (!items.length) {
     list.innerHTML = '<p class="empty">目前沒有定時作業</p>';
     return;
   }
-
-  list.innerHTML = Object.entries(sections).map(([name, sec]) => `
-    <div class="job-item">
-      <div class="job-item-header">
-        <span class="job-type-badge" style="background:${sec.badgeColor}20;color:${sec.badgeColor}">${sec.icon} ${sec.badge}</span>
-        <span class="job-label">${esc(name)}</span>
-        <span class="job-schedule">${sec.rows.length} 項</span>
-      </div>
-      ${sec.rows.map(r => `
-        <div style="display:flex;gap:8px;font-size:12px;padding:3px 0;border-bottom:1px solid rgba(48,54,61,0.3)">
-          <span style="color:var(--muted);min-width:80px">${esc(r.label)}</span>
-          <span style="color:var(--text);word-break:break-all;flex:1">${esc(r.value)}</span>
+  list.innerHTML = items.map(job => `
+    <div class="job-card" data-job-id="${esc(job.id)}">
+      <div class="job-card-header">
+        <div class="job-card-icon">${job.name.includes('Heartbeat') ? '❤️' : job.name.includes('GitHub') ? '🔄' : job.name.includes('Gateway') ? '🚀' : job.name.includes('語意') ? '🔍' : job.name.includes('季報') || job.name.includes('爬蟲') ? '📊' : '⏰'}</div>
+        <div class="job-card-info">
+          <div class="job-card-name">${esc(job.name)}</div>
+          <div class="job-card-trigger">${esc(job.trigger)}</div>
         </div>
-      `).join('')}
+        <div class="job-card-next">
+          <div class="job-card-next-label">下次</div>
+          <div class="job-card-next-time">${esc(job.nextRun || '—')}</div>
+        </div>
+      </div>
+      <div class="job-card-footer">
+        <span class="job-card-badge ${job.status === 'running' ? 'badge-running' : job.status === 'active' ? 'badge-active' : 'badge-stopped'}">${job.status === 'running' ? '運行中' : job.status === 'active' ? 'active' : 'stopped'}</span>
+        <span class="job-card-history-hint">點擊查看歷史</span>
+      </div>
     </div>
   `).join('');
+
+  // Click to open modal
+  list.querySelectorAll('.job-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const id = card.dataset.jobId;
+      const job = items.find(j => j.id === id);
+      if (job) openJobModal(job);
+    });
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────

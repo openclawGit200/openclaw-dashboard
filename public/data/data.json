@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-04-08T03:48:14.535Z",
+    "generated": "2026-04-08T03:55:42.024Z",
     "workspace": "/Users/downtoearth/.openclaw/workspace"
   },
   "projects": [
@@ -769,49 +769,163 @@
   ],
   "relationships": [],
   "jobs": {
-    "heartbeat": {
-      "last": "unknown",
-      "next": "等待觸發",
-      "schedule": "per heartbeat poll",
-      "history": []
-    },
+    "items": [
+      {
+        "id": "heartbeat",
+        "name": "OpenClaw Heartbeat",
+        "trigger": "HOOK: session:compact:before",
+        "schedule": "per heartbeat poll",
+        "nextRun": "等待觸發",
+        "lastRun": "未知",
+        "status": "active",
+        "history": [
+          {
+            "ok": true,
+            "text": "**GLM Skills**：ZHIPU_API_KEY 已設定（glm-4-flash/glm-5）；glmv-stock-analyst 對台股（2101.TW）支援有限（financials/technicals 均 empty）"
+          },
+          {
+            "ok": true,
+            "text": "**台股季報爬蟲**：1841 檔（2025-Q4，目測）"
+          },
+          {
+            "ok": true,
+            "text": "**股票報告郵件**：每週一～五 07:00，下次 2026-04-09（四）07:00；已修復：msg[\"Subject\"] 未設定 ✅；tavily 加入 cascade ✅；engine=cascade 已實作 ✅"
+          },
+          {
+            "ok": true,
+            "text": "**備份系統**：✅ GitHub backup 已建立，每週六 03:00 自動執行"
+          },
+          {
+            "ok": true,
+            "text": "**summarize API key**：已更新為 Zhipu（Z_AI_API_KEY），summarize + Zhipu(glm-5) URL/中文/stdin 正常；本地大檔案（>10KB TXT）仍 empty，是 summarize CLI 對長檔案的已知問題"
+          },
+          {
+            "ok": true,
+            "text": "**summarize API key**：Z_AI_API_KEY 已設定並驗證（glm-5）；URL/stdin 正常，本地大檔 >10KB 仍 empty（summarize CLI bug）"
+          },
+          {
+            "ok": true,
+            "text": "**PDF OCR**：南港 PDF 第9-11頁為圖片掃描，pypdf 讀不到，需整合 tesseract OCR（待處理）"
+          },
+          {
+            "ok": true,
+            "text": "**MemPalace 安裝**：✅ 已安裝（pip3 + 清華鏡像）；Palace 路徑 `~/.mempalace/palace`；1876 drawers（workspace）；無需 API Key"
+          },
+          {
+            "ok": true,
+            "text": "**Skills 清理**：移除 glmv-stock-analyst、glmocr-formula、glmv-doc-based-writing（glmv-doc-based-writing）；保留 zhipu-web-search"
+          }
+        ]
+      },
+      {
+        "id": "github-backup",
+        "name": "GitHub 異地備份",
+        "trigger": "LaunchAgent: 每週六",
+        "schedule": "每週六 03:00",
+        "nextRun": "2026/4/11 上午3:00:00",
+        "lastRun": "2026-04-07 03:00",
+        "status": "active",
+        "history": [
+          {
+            "ok": true,
+            "hash": "da6c0ef",
+            "message": "Auto backup",
+            "time": "2026-04-07 03:00"
+          },
+          {
+            "ok": true,
+            "message": "c0f8841 Update 台股季報: weekly Saturday schedule + Feishu completion report"
+          },
+          {
+            "ok": true,
+            "message": "b410231 Update AGENTS.md: add organize workflow, failure review rules, and forbidden actions"
+          },
+          {
+            "ok": true,
+            "message": "f802a03 Sync workspace: notes/, memory/, updated MEMORY.md"
+          },
+          {
+            "ok": true,
+            "message": "29b6bb3 Add daily 03:00 GitHub backup (LaunchAgent + sync script + dynamic install.sh)"
+          },
+          {
+            "ok": true,
+            "message": "47f3e3f Add install.sh for macOS migration"
+          },
+          {
+            "ok": true,
+            "message": "57ae721 Initial backup: skills, notes, memory, scripts, core configs"
+          }
+        ]
+      },
+      {
+        "id": "com.twse.semantic-sync",
+        "name": "台股語意同步",
+        "trigger": "LaunchAgent",
+        "schedule": "LaunchAgent",
+        "nextRun": "—",
+        "lastRun": "Status 0",
+        "status": "running",
+        "history": [
+          {
+            "ok": true,
+            "message": "com.twse.semantic-sync — Status: 0, PID: -"
+          }
+        ]
+      },
+      {
+        "id": "taiwan-stock-crawler",
+        "name": "台股季報爬蟲",
+        "trigger": "LaunchAgent",
+        "schedule": "LaunchAgent",
+        "nextRun": "—",
+        "lastRun": "Status 0",
+        "status": "running",
+        "history": [
+          {
+            "ok": true,
+            "message": "taiwan-stock-crawler — Status: 0, PID: -"
+          }
+        ]
+      },
+      {
+        "id": "ai.openclaw.gateway",
+        "name": "OpenClaw Gateway",
+        "trigger": "LaunchAgent: 開機自動",
+        "schedule": "LaunchAgent",
+        "nextRun": "⚠️ 運行中",
+        "lastRun": "PID 35441",
+        "status": "active",
+        "history": [
+          {
+            "ok": false,
+            "message": "ai.openclaw.gateway — Status: 1, PID: 35441"
+          }
+        ]
+      },
+      {
+        "id": "com.twse.crawler-sync",
+        "name": "台股爬蟲同步",
+        "trigger": "LaunchAgent",
+        "schedule": "LaunchAgent",
+        "nextRun": "—",
+        "lastRun": "Status 128",
+        "status": "stopped",
+        "history": [
+          {
+            "ok": false,
+            "message": "com.twse.crawler-sync — Status: 128, PID: -"
+          }
+        ]
+      }
+    ],
+    "heartbeat": null,
     "cron": {
       "items": [],
       "history": []
     },
     "launchctl": {
-      "items": [
-        {
-          "id": "lc-109",
-          "label": "ai.openclaw.github-backup",
-          "status": "127",
-          "pid": "-"
-        },
-        {
-          "id": "lc-216",
-          "label": "com.twse.semantic-sync",
-          "status": "0",
-          "pid": "-"
-        },
-        {
-          "id": "lc-282",
-          "label": "taiwan-stock-crawler",
-          "status": "0",
-          "pid": "-"
-        },
-        {
-          "id": "lc-288",
-          "label": "ai.openclaw.gateway",
-          "status": "1",
-          "pid": "35441"
-        },
-        {
-          "id": "lc-345",
-          "label": "com.twse.crawler-sync",
-          "status": "128",
-          "pid": "-"
-        }
-      ],
+      "items": [],
       "history": []
     }
   }

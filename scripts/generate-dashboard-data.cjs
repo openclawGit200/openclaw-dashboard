@@ -19,9 +19,10 @@ const data = {
   memory:   [],   // 統一記憶：notes/ + financial_notes/ + memory/ + Obsidian/ + research/
   relationships: [],
   jobs: {
-    heartbeat:   { last: null, next: null, schedule: null, history: [] },
-    cron:        { items: [], history: [] },
-    launchctl:   { items: [], history: [] },
+    items: [],
+    heartbeat: null,
+    cron: { items: [], history: [] },
+    launchctl: { items: [], history: [] },
   }
 };
 
@@ -174,44 +175,118 @@ function parseAllNotes() {
 }
 
 // ── 4. Jobs ────────────────────────────────────────────────────────────────
+// 統一 jobs[] 結構：每個 job 有 id, name, trigger, schedule, nextRun, history
+function parseJobs() {
+  // 4a. Heartbeat
+  parseHeartbeat();
+
+  // 4b. GitHub Backup (from plist + git log)
+  parseGithubBackup();
+
+  // 4c. Launchctl user jobs
+  parseLaunchctl();
+}
+
 function parseHeartbeat() {
   const f = path.join(ROOT, 'HEARTBEAT.md');
   if (!fs.existsSync(f)) return;
   const txt = fs.readFileSync(f, 'utf8');
   const sched = txt.match(/cron[：:]\s*(.+)/i) || txt.match(/schedule[：:]\s*(.+)/i);
   const last  = txt.match(/更新[：:]\s*(.+)/i) || txt.match(/last[_-]?run[：:]\s*(.+)/i);
-  data.jobs.heartbeat = {
-    last:     last  ? last[1].trim()  : 'unknown',
-    next:     sched ? sched[1].trim() : '等待觸發',
+  // 嘗試抓 history 內的記錄
+  const histMatches = [...txt.matchAll(/[-*]\s*\[(.)\]\s*(.+)/g)].slice(0, 10).map(m => ({
+    ok: m[1] !== ' ',
+    text: m[2].trim()
+  }));
+
+  data.jobs.items.push({
+    id: 'heartbeat',
+    name: 'OpenClaw Heartbeat',
+    trigger: 'HOOK: session:compact:before',
     schedule: sched ? sched[1].trim() : 'per heartbeat poll',
-    history: []
-  };
+    nextRun: sched ? sched[1].trim() : '等待觸發',
+    lastRun: last ? last[1].trim() : '未知',
+    status: 'active',
+    history: histMatches
+  });
 }
 
-function parseCron() {
+function parseGithubBackup() {
+  const plistPath = path.join(process.env.HOME || '/Users/downtoearth', 'Library/LaunchAgents/openclaw-github-backup.plist');
+  if (!fs.existsSync(plistPath)) return;
+  const plist = fs.readFileSync(plistPath, 'utf8');
+  const hourMatch = plist.match(/<key>Hour<\/key>\s*<integer>(\d+)<\/integer>/);
+  const minMatch  = plist.match(/<key>Minute<\/key>\s*<integer>(\d+)<\/integer>/);
+  const hour = hourMatch ? parseInt(hourMatch[1]) : 3;
+  const min  = minMatch  ? parseInt(minMatch[1])  : 0;
+
+  // Git log history from backup repo
+  let history = [];
   try {
-    const out = execSync('crontab -l 2>/dev/null || echo ""', { encoding: 'utf8' });
-    data.jobs.cron.items = out.split('\n')
-      .filter(l => l.trim() && !l.startsWith('#'))
-      .map(l => {
-        const parts = l.trim().split(/\s+/);
-        return { id: `cron-${parts.slice(0,5).join('-')}`, cron: parts.slice(0,5).join(' '), command: parts.slice(5).join(' '), label: parts.slice(5).pop()?.split('/').pop()?.replace('.sh','').replace('.py','') || '' };
-      });
-  } catch { data.jobs.cron.items = []; }
+    const backupRepo = path.join(process.env.HOME || '/Users/downtoearth', 'openclaw-backup');
+    const gitLog = execSync(`git -C "${backupRepo}" log --oneline -10 2>/dev/null`, { encoding: 'utf8' });
+    history = gitLog.trim().split('\n').map(line => {
+      const m = line.match(/^([a-f0-9]+)\s+(.+)\s+(20\d{2}-\d{2}-\d{2}\s+\d{2}:\d{2})/);
+      return m ? { ok: true, hash: m[1], message: m[2], time: m[3] } : { ok: true, message: line };
+    }).slice(0, 10);
+  } catch {}
+
+  // 計算下一個週六
+  const now = new Date();
+  const dow = 6; // Saturday
+  const next = new Date(now);
+  next.setDate(now.getDate() + ((dow + 7 - now.getDay()) % 7 || 7));
+  next.setHours(hour, min, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 7);
+
+  data.jobs.items.push({
+    id: 'github-backup',
+    name: 'GitHub 異地備份',
+    trigger: 'LaunchAgent: 每週六',
+    schedule: `每週六 ${String(hour).padStart(2,'0')}:${String(min).padStart(2,'0')}`,
+    nextRun: next.toLocaleString('zh-TW', { timeZone: 'Asia/Shanghai' }),
+    lastRun: history[0]?.time || '未知',
+    status: 'active',
+    history
+  });
 }
 
 function parseLaunchctl() {
   const systemPrefixes = ['com.apple.','com.google.','com.microsoft.','com.ollama.ollama','com.openssh.','org.postgresql.','homebrew.mxcl.','io.bombich.','ru.croc.'];
   const isSystem = label => systemPrefixes.some(p => label.startsWith(p));
-  // 過濾 macOS app instances（Electron、Safari、Terminal、Obsidian 等全部 application.* 前綴）
   const isMacAppInstance = label => /^application\./.test(label);
+
+  const nameMap = {
+    'ai.openclaw.gateway':   { name: 'OpenClaw Gateway',  trigger: 'LaunchAgent: 開機自動' },
+    'ai.openclaw.github-backup': null, // 已由 parseGithubBackup 處理
+    'com.twse.semantic-sync':  { name: '台股語意同步',      trigger: 'LaunchAgent' },
+    'com.twse.crawler-sync':   { name: '台股爬蟲同步',      trigger: 'LaunchAgent' },
+    'taiwan-stock-crawler':   { name: '台股季報爬蟲',      trigger: 'LaunchAgent' },
+  };
+
   try {
     const out = execSync('launchctl list 2>/dev/null || echo ""', { encoding: 'utf8' });
     const lines = out.split('\n').slice(1).filter(l => l.trim());
-    data.jobs.launchctl.items = lines
+    const items = lines
       .map((l,i) => { const p=l.split(/\t+/); return { id:`lc-${i}`, label:p[2]||p[1]||'', status:p[1]||'?', pid:p[0]||'-' }; })
       .filter(i => i.label && !i.label.startsWith('-') && !isSystem(i.label) && !isMacAppInstance(i.label));
-  } catch { data.jobs.launchctl.items = []; }
+
+    for (const j of items) {
+      const mapped = nameMap[j.label];
+      if (mapped === null) continue; // 跳過已由其他 parser 處理的項目
+      if (!mapped) continue; // 未知的 launchctl job 也跳過
+      data.jobs.items.push({
+        id: j.label,
+        name: mapped?.name || j.label,
+        trigger: mapped?.trigger || 'LaunchAgent',
+        schedule: 'LaunchAgent',
+        nextRun: j.status === '1' ? '⚠️ 運行中' : (j.pid !== '-' ? `PID ${j.pid}` : '—'),
+        lastRun: j.pid !== '-' ? `PID ${j.pid}` : `Status ${j.status}`,
+        status: j.status === '0' ? 'running' : j.status === '1' ? 'active' : 'stopped',
+        history: [{ ok: j.status === '0', message: `${j.label} — Status: ${j.status}, PID: ${j.pid}` }]
+      });
+    }
+  } catch {}
 }
 
 // ── 5. Relationships ─────────────────────────────────────────────────────────
@@ -251,9 +326,7 @@ function buildRelationships() {
 parseMEMORY();
 parseProjectNotes();
 parseAllNotes();
-parseHeartbeat();
-parseCron();
-parseLaunchctl();
+parseJobs();
 buildRelationships();
 
 fs.writeFileSync(OUT, JSON.stringify(data, null, 2), 'utf8');
@@ -264,5 +337,5 @@ console.log(`✅ Written to ${OUT}`);
 console.log(`   Projects:   ${data.projects.length}`);
 console.log(`   Files:      ${data.files.length}`);
 console.log(`   Memory:    ${data.memory.length}  (TWSE=${twse} | notes+memory+obsidian=${notes})`);
-console.log(`   Jobs:       cron=${data.jobs.cron.items.length} launchctl=${data.jobs.launchctl.items.length}`);
+console.log(`   Jobs:       ${data.jobs.items.length}`);
 console.log(`   Relations:  ${data.relationships.length}`);
