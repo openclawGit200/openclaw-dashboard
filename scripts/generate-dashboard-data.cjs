@@ -157,6 +157,7 @@ function parseMemoryFiles() {
     const txt  = fs.readFileSync(full, 'utf8');
     const lines = txt.split('\n');
     const title = lines.find(l => l.startsWith('#'))?.replace(/^#+\s*/, '').trim() || file.replace('.md','');
+    if (title.toLowerCase().startsWith('session')) continue; // 過濾掉 session-memory hook 自動寫的作業記錄
     const firstPara = lines.find(l => l.trim().length > 20 && !l.startsWith('#')) || '';
     const tagRe  = /#(\w+)/g;
     const tags   = [...new Set([...txt.matchAll(tagRe)].map(t => t[1]))];
@@ -189,6 +190,22 @@ function parseCron() {
 
 // ── 6. launchctl ────────────────────────────────────────────────────────────
 function parseLaunchctl() {
+  // 系統自帶要排除的 prefix（精確匹配）
+  const systemPrefixes = [
+    'com.apple.',
+    'com.google.',
+    'com.microsoft.',
+    'com.ollama.ollama',
+    'com.openssh.',
+    'org.postgresql.',
+    'homebrew.mxcl.',
+    'io.bombich.',
+    'ru.croc.',
+  ];
+  // 過濾 Electron app 實例（如 application.com.electron.lark.<UUID>）
+  const isElectronInstance = label => /^application\.com\.electron\.[^/]+$/.test(label);
+  const isSystem = label => systemPrefixes.some(p => label.startsWith(p)) || isElectronInstance(label);
+
   try {
     const out = execSync('launchctl list 2>/dev/null || echo ""', { encoding: 'utf8' });
     const lines = out.split('\n').slice(1).filter(l => l.trim());
@@ -196,11 +213,11 @@ function parseLaunchctl() {
       const parts = l.split(/\t+/);
       return {
         id: `lc-${i}`,
-        label: parts[1] || '',
-        status: parts[0] || '?',
-        pid: parts[2] || '-'
+        label: parts[2] || parts[1] || '',  // parts[2] = Label (pid\tstatus\tlabel format)
+        status: parts[1] || '?',
+        pid: parts[0] || '-'
       };
-    }).filter(i => i.label && !i.label.startsWith('-'));
+    }).filter(i => i.label && !i.label.startsWith('-') && !isSystem(i.label) && !isElectronInstance(i.label));
   } catch { data.jobs.launchctl.items = []; }
 }
 
