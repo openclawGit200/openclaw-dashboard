@@ -341,12 +341,75 @@ function buildRelationships() {
   }
 }
 
+// ── 5. Project file links ────────────────────────────────────────────────────
+// 每個專案在 modal 裡顯示的檔案連結（external URLs 或 workspace 路徑）
+const PROJECT_FILES = {
+  '台股季報爬蟲': [
+    { name: '📥 TWSE 季報（GitHub）', url: 'https://github.com/openclawGit200/twse-reports-lib', type: 'github' },
+    { name: '🛠️ 台股季報 Skill 目錄', url: null, path: 'skills/台股季報/', type: 'local' },
+    { name: '📁 季報下載目錄（本地）', url: null, path: '台股季報/2025/Q4/', type: 'local' },
+  ],
+  '163-郵箱監控系統': [
+    { name: '🛠️ 163-email Skill', url: null, path: 'skills/163-email/', type: 'local' },
+    { name: '📝 notes/projects/163-email-monitor.md', url: null, path: 'notes/projects/163-email-monitor.md', type: 'local' },
+  ],
+  '龍蝦燈-—-專案計畫': [
+    { name: '📝 notes/projects/龍蝦燈.md', url: null, path: 'notes/projects/龍蝦燈.md', type: 'local' },
+  ],
+  'karing-+-cloudflare-連線優化計畫': [
+    { name: '📝 notes/projects/karing-cf-optimization.md', url: null, path: 'notes/projects/karing-cf-optimization.md', type: 'local' },
+  ],
+  '股票報告郵件': [
+    { name: '🛠️ stock-report-email Skill', url: null, path: 'skills/stock-report-email/', type: 'local' },
+    { name: '📝 notes/projects/stock-report-email.md', url: null, path: 'notes/projects/stock-report-email.md', type: 'local' },
+  ],
+  'mempalace（記憶系統）': [
+    { name: '📝 notes/projects/mempalace.md', url: null, path: 'notes/projects/mempalace.md', type: 'local' },
+  ],
+  'cf-dashboard（個人看板）': [
+    { name: '🔗 GitHub Repo', url: 'https://github.com/openclawGit200/openclaw-dashboard', type: 'github' },
+    { name: '🌐 線上看板', url: 'https://openclaw-dashboard-dv8.pages.dev/', type: 'external' },
+  ],
+  'cf-search（個人搜尋引擎）': [
+    { name: '🔗 GitHub Repo', url: 'https://github.com/openclawGit200/openclaw-search', type: 'github' },
+    { name: '🌐 線上搜尋', url: 'https://openclaw-search.pages.dev/', type: 'external' },
+  ],
+  '備份系統（github-異地備份）': [
+    { name: '🔗 GitHub Repo', url: 'https://github.com/openclawGit200/openclaw-backup', type: 'github' },
+    { name: '📝 notes/projects/backup.md', url: null, path: 'notes/projects/backup.md', type: 'local' },
+  ],
+  'cloudflare-專案': [
+    { name: '🔗 GitHub (openclaw-search)', url: 'https://github.com/openclawGit200/openclaw-search', type: 'github' },
+    { name: '🔗 GitHub (openclaw-dashboard)', url: 'https://github.com/openclawGit200/openclaw-dashboard', type: 'github' },
+    { name: '📝 notes/projects/cloudflare.md', url: null, path: 'notes/projects/cloudflare.md', type: 'local' },
+  ],
+  'github-skill-專案記憶': [
+    { name: '📝 notes/projects/github.md', url: null, path: 'notes/projects/github.md', type: 'local' },
+  ],
+  'openclaw-agent-設定記憶': [
+    { name: '📝 notes/projects/openclaw-setup.md', url: null, path: 'notes/projects/openclaw-setup.md', type: 'local' },
+  ],
+  '台股季報爬蟲專案記憶': [
+    { name: '📝 notes/projects/twse-crawler.md', url: null, path: 'notes/projects/twse-crawler.md', type: 'local' },
+  ],
+  '遊戲試做-—-專案計畫': [
+    { name: '📝 notes/projects/遊戲試做.md', url: null, path: 'notes/projects/遊戲試做.md', type: 'local' },
+  ],
+};
+
+function attachProjectFiles() {
+  for (const p of data.projects) {
+    p.files = PROJECT_FILES[p.id] || [];
+  }
+}
+
 // ── Run ─────────────────────────────────────────────────────────────────────
 parseMEMORY();
 parseProjectNotes();
 parseAllNotes();
 parseJobs();
 buildRelationships();
+attachProjectFiles();
 
 fs.writeFileSync(OUT, JSON.stringify(data, null, 2), 'utf8');
 

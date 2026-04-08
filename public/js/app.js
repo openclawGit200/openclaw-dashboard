@@ -81,12 +81,31 @@ async function init() {
 }
 
 // ── Project Modal ──────────────────────────────────────────────────────────
+function renderProjectFiles(files) {
+  if (!files || !files.length) return '<div style="color:var(--muted);font-size:13px;margin-top:12px">無相關檔案</div>';
+  return `<div style="margin-top:14px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-weight:600">📎 相關檔案</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${files.map(f => {
+        const label = f.url
+          ? `<a href="${esc(f.url)}" target="_blank" rel="noopener" style="color:var(--accent)">${f.name}</a>`
+          : `<span style="color:var(--muted);font-family:monospace;font-size:12px">${f.path}</span>`;
+        return `<div style="display:flex;align-items:center;gap:6px;font-size:13px">
+          <span style="color:var(--muted)">${f.type === 'github' ? '🔗' : f.type === 'external' ? '🌐' : '📁'}</span>
+          ${label}
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
 function openProjectModal(project) {
   $('pm-name').textContent = project.title;
   $('pm-status').textContent = project.status ? statusLabel(project.status) : '';
   $('pm-progress').innerHTML = project.progress !== undefined ? progressBar(project.progress) : '';
   $('pm-tags').innerHTML = tagsHTML(project.tags);
   $('pm-body').textContent = project.body || project.description || '（無內容）';
+  $('pm-files').innerHTML = renderProjectFiles(project.files);
   $('pm-path').textContent = project.relatedNote || project.path || '';
   $('pm-updated').textContent = project.lastUpdated || '';
   $('proj-modal').style.display = 'flex';
