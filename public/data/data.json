@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated": "2026-04-08T14:28:39.254Z",
+    "generated": "2026-04-09T23:40:26.675Z",
     "workspace": "/Users/downtoearth/.openclaw/workspace"
   },
   "projects": [
@@ -15,7 +15,7 @@
       "pending": [
         "MEMORY.md 舊記錄 862/1205 口徑待確認（可能是某次中斷後重啟的子集？）"
       ],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "files": [
         {
           "name": "📥 TWSE 季報（GitHub）",
@@ -45,7 +45,7 @@
       "tags": [],
       "completed": [],
       "pending": [],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "body": "# 163 郵箱監控系統\n\n## 基本資訊\n- **郵箱：** 13543831490@163.com\n- **用途：** 接收「符合指標的標的」自動篩選系統的選股通知\n- **發送者：** SYSNOTE@titanlight.com（量子線路自動篩選系統）\n\n## 連線設定\n- **IMAP：** 被 163 封鎖（IP 119.120.41.49 被判定不安全）\n- **POP3：** 正常（作為 fallback）\n- **Skill：** `163-email`\n- **Script：** `skills/163-email/scripts/email_client.py`\n- **Credentials：** `.credentials/163email.json`（已設定）\n\n## 使用方式\n```bash\n# 列出郵件\npython3 skills/163-email/scripts/email_client.py --action list --limit 20\n\n# 讀取郵件\npython3 skills/163-email/scripts/email_client.py --action read --id <ID>\n```\n\n## 系統篩選邏輯（進場 Check List）\n1. MACD 正在向上\n2. 價量配合站上關鍵價位\n3. TREND VIEW 2H & 4H 都向上\n4. 日、周趨勢沒有向下\n5. 停損紀律：走勢不符預期，馬上砍\n\n## 體質評估門檻\n- 本益比 < 24\n- 股價淨值比 < 2.5\n\n## 已記錄的篩選標的（2026-04-03）\n| 股票 | 名稱 | 技術信號 | 本益比 | 股價淨值比 | 營收 YoY |\n|------|------|---------|--------|-----------|---------|\n| 2834 | 臺企銀 | 5日線穿越布晉中線 | 12.27 ✅ | 1.04 ✅ | -4.63% |\n| 2882 | 國泰金 | MACD 黃金交叉、KD 低檔 | 11.84 ✅ | 1.21 ✅ | -11.03% |\n| 6175 | 立敦 | MACD 4天前黃金交叉、KD 低檔 | 14.54 ✅ | 1.57 ✅ | -3.08% |",
       "files": [
         {
@@ -71,7 +71,7 @@
       "tags": [],
       "completed": [],
       "pending": [],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "body": "# 龍蝦燈 — 專案計畫\n\n## 專案目標\n讓 LED 面板根據 OpenClaw 的不同狀態呈現對應的光影效果，\n把 AI 助理的「情緒」可視化，成為房間裡獨特的「AI 情緒龍蝦」。\n\n---\n\n## 技術架構（確定的）\n\n```\nOpenClaw 狀態變化\n    ↓\nPython 腳本（iMac 本地執行）\n    ↓ 直接 HTTP 請求（同一 WiFi LAN）\nLED 面板本地 API\n    ↓\n燈光效果呈現\n```\n\n**不走任何中介：**\n- ❌ Home Assistant（長期不用）\n- ❌ 樹莓派\n- ❌ Matter 橋接器\n\n**OpenClaw 就是智能家居核心，不走三大廠生態系。**\n\n---\n\n## 控制方式\n\n### 最終形態：OpenClaw 直接控制 Matter 設備\nOpenClaw 充當 Matter Controller，通過內建服務直接發送 Matter Cluster 指令。\n\n### 過渡形態：HTTP API 直連\nLED 面板直接暴露 HTTP API，OpenClaw 透過 requests 發送控制指令。\n（Nanoleaf 模式，或工廠支援 HTTP API 的面板）\n\n### 第一次設定（拿 Token，Nanoleaf 模式）\n```bash\n# 1. 長按 LED 控制器電源鍵，等指示燈閃爍\n# 2. 在 iMac 終端執行：\ncurl -X POST \"http://<LED_IP>:16021/api/v1/new\" \\\n  -d '{\"clientName\": \"openclaw-led\"}'\n# 回傳的 token 就是 <TOKEN>\n```\n\n---\n\n## 狀態與燈光對應表\n\n| 狀態 | 燈光效果 | 說明 |\n|------|----------|------|\n| `thinking` | 藍紫漸層，由外向內脈衝 | 分析推理中 |\n| `working` | 白綠色平穩呼吸燈 | 正在執行任務 |\n| `error` | 紅色呼吸燈 | 任務失敗或遇到錯誤 |\n| `idle` | 暖黃微光，緩慢變化 | 待機等待指令 |\n| `angry` | 橙紅快速閃爍 | 嚴重錯誤或被指責 |\n| `happy` | 彩虹流水燈 | 完成任務或受到稱讚 |\n| `done` | 淡綠色穩定光 | 任務完成 |\n\n---\n\n## OpenClaw 觸發腳本設計\n\n```\nOpenClaw 狀態改變\n    → 寫入狀態檔 /tmp/openclaw_status.txt\n    → Python daemon 偵測變化\n    → 查詢狀態對應表\n    → 發送 HTTP 到 LED 面板\n```\n\n---\n\n## 工廠 API 規格書（等工廠回應後提供）\n\n> 以下為提供給工廠的設備端必須實作的 HTTP REST API 規格。\n> 設備需支援在區域網內直接 HTTP 訪問，不走雲端。\n\n---\n\n### 設備發現\n```\nGET http://<DEVICE_IP>/api/v1/info\nResponse: { \"name\": \"LED Panel\", \"model\": \"XXX\", \"firmware\": \"1.0\" }\n```\n\n### 電源控制\n```\nGET  http://<DEVICE_IP>/api/v1/state       → 讀取當前狀態\nPUT  http://<DEVICE_IP>/api/v1/state       → {\"on\": true/false}\n```\n\n### 亮度控制（0-100）\n```\nPUT http://<DEVICE_IP>/api/v1/state/brightness  → {\"value\": 75}\n```\n\n### 顏色控制（HSB 格式）\n```\nPUT http://<DEVICE_IP>/api/v1/state/color       → {\"hue\": 240, \"sat\": 100}\n```\n- `hue`：0-360（色相）\n- `sat`：0-100（飽和度）\n\n### 預設場景\n```\nGET  http://<DEVICE_IP>/api/v1/effects         → 回傳可用場景列表\nPUT  http://<DEVICE_IP>/api/v1/effects          → {\"command\": \"display\", \"animName\": \"彩虹流水燈\"}\n```\n\n### 錯誤回應格式（統一）\n```json\n{\"error\": 0, \"message\": \"OK\"}\n{\"error\": 1, \"message\": \"Invalid parameter\"}\n{\"error\": 2, \"message\": \"Device busy\"}\n```\n\n### 工廠需附帶說明\n- 設備需在 AP 模式下廣播 mDNS（_ledpanel._tcp）以便被發現\n- 預設 port：80（HTTP）\n- 所有 API 必須在同一 WiFi 區域網內可直接訪問\n- 不需要認證（區域網內可控即可）\n- 回應格式：JSON\n- 支援 CORS\n\n### 工廠回覆檢核表\n- [ ] 是否支援 HTTP REST API？還是只有 Tuya/Matter？\n- [ ] 晶片方案是哪一款？（ESP32 / BK7231 / RTL8722 等）\n- [ ] 供電方式？（DC 12V / USB / 變壓器？）\n- [ ] 最大功率？（影響變壓器選型）\n- [ ] 能否提供樣品時一起給這份 API 文件？\n\n---\n\n## 重要架構决策（2026-04-04）\n\n### 長期目標\n**OpenClaw 就是智能家居核心，不被三大廠生態系綁定。**\n\n### 不用 HA\n- HA 太重，不需要這麼多功能\n- 未來由 OpenClaw 充當 Matter Controller\n- 透過 HEARTBEAT.md 机制实现设备存活监控\n\n### 需要建設的組件\n1. Python Matter Server（在 iMac 上長期運行）\n2. OpenClaw → Matter Server 的指令通道\n3. HEARTBEAT.md 心跳檢查，確認 Matter Server 在線\n4. 設備上線/離線的監控與報警\n\n---\n\n## 待確認事項\n\n- [ ] iMac 和 LED 面板是否在同一個 WiFi\n- [ ] LED 硬體：Nanoleaf（已有 HTTP API）或工廠 Matter 樣品\n- [ ] LED 面板的 IP 和控制協議（HTTP API 或 Matter Cluster）\n- [ ] 是否在 iMac 上運行 Python Matter Server\n\n---\n\n## 採購清單\n\n| 項目 | 預算 | 備註 |\n|------|------|------|\n| 方案A：Nanoleaf Shapes 5片組 | NT$2,000-3,000 | 已有完整 HTTP API |\n| 方案B：淘工廠 Matter LED 面板 | 樣品免費/低價 | 需要確認支援本地 HTTP |\n\n---\n\n## 建立日期：2026-04-03\n## 更新日期：2026-04-06\n\n## 供應商搜尋中（2026-04-06）\n\n正在尋找供應商，需具備以下條件：\n- ✅ 支援 HTTP REST API（不走雲端，直接區域網控制）\n- ✅ 建議支援 Matter（作為過渡方案）\n- ❌ xLight 不適用（藍牙 + makeblock 專屬協定，無公開 HTTP API）\n\n---\n\n## xLight 龍蝦燈（獨立專案，暫停）\n\n- **makeblock xLight**（兒童智能編程燈）\n- ⚠️ 無法整合進 LED 情緒牆（藍牙控制，無 HTTP API）\n- 📌 用途：做成一隻裝飾龍蝦燈（固定顏色顯示，獨立運作）\n\n---\n\n## 更新日期：2026-04-04（架構决策：OpenClaw 作為智能家居核心）",
       "files": [
         {
@@ -91,7 +91,7 @@
       "tags": [],
       "completed": [],
       "pending": [],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "body": "# Karing + Cloudflare 連線優化計畫\n\n## 專案目標\n優化 OpenClaw 對外（NVIDIA、MiniMax、Cloudflare）的連線品質與穩定性。\n\n---\n\n## 現況確認（2026-04-05）\n\n### Karing\n- 已安裝 DMG：`karing_1.2.15.1806_macos_universal.dmg`\n- 設定檔存在：`~/Library/Group Containers/group.com.nebula.karing/`\n- 混合代理端口：`127.0.0.1:3067`\n- **目前未運行**（Connection refused）\n\n### 連線現況\n| 目標 | 直連延遲 | 狀態 |\n|------|---------|------|\n| api.minimaxi.com | 219ms | ✅ 可連 |\n| integrate.api.nvidia.com | 517ms | ✅ 可連 |\n| localhost:11434 (Ollama) | - | ✅ 正常 |\n| Karing proxy 127.0.0.1:3067 | - | ❌ 未運行 |\n\n---\n\n## 優化方向一：改善 cfnew / BPB Panel 節點品質\n\n### 現況\n- cfnew 和 BPB Panel 都有部署在 Cloudflare Workers\n- 兩者都提供訂閱 URL，用戶端（Sing-box / Clash / v2rayN）訂閱後可獲得節點列表\n- 節點基於 Cloudflare 免費 Worker IP，品質取決於 CF IP 優選結果\n\n### 關鍵問題\n- 免費 Worker IP 是 Cloudflare 隨機分配的，速度不穩定\n- 需要透過「優選工具」手動找出延遲最低的 CF IP\n- cfnew 內建延遲測試 + API 管理優選 IP\n- BPB Panel 有 Warp 額外加成\n\n### 待確認\n- [ ] cfnew 訂閱 URL 是什麼？\n- [ ] BPB Panel 訂閱 URL 是什麼？\n- [ ] Karing 目前訂閱的是哪一個？\n- [ ] 優選 IP 工具有沒有跑過？\n\n### cfnew 優選流程\n1. 部署 cfnew Worker 到 Cloudflare Workers\n2. 透過 Worker 管理介面（/`{UUID}`）進入圖形配置\n3. 使用「延遲測試」功能，篩選最快的前 10 個 IP\n4. 儲存後訂閱 URL 自動更新\n\n### BPB Panel 優選流程\n1. 部署 BPB Panel Worker 到 Cloudflare Workers\n2. 透過環境變數設定 UUID、TR_PASS\n3. 訂閱 URL 提供 v2rayN / Sing-box / Clash 配置\n\n---\n\n## 優化方向二：改善與 Cloudflare 的連線\n\n### 現況\n- OpenClaw 目前有多個功能依賴 Cloudflare：\n  - Cloudflare Workers 搜尋（`a13fd96d.openclaw-search.pages.dev`）\n  - cfnew / BPB Panel 節點（Cloudflare Workers）\n  - Cloudflare Pages 部署\n\n### 關鍵問題\n- 台灣到 Cloudflare Workers 的連線可能繞路\n- CF Workers IP 被 ISP QoS 限速\n- cfnew 支援 ProxyIP（`p` 變數），可用自訂代理節點\n\n### 可能的優化方式\n1. **啟用 ECH（Encrypted Client Hello）** — cfnew 支援，降低被 QoS 的機率\n2. **手動指定 Worker 地區** — `wk=SG` 或 `wk=JP`，選擇延遲最低的\n3. **ProxyIP 鏈路** — 如果有穩定的 SOCKS5 代理，可以串聯到 cfnew\n\n---\n\n## 優化方向三：改善 iMac 本地端設定\n\n### Karing 設定為系統代理（方案A）\n- 在 Karing 介面開啟「自動設定系統代理」\n- 所有應用流量自動走 Karing\n- **缺點**：所有軟體都走代理，可能影響本地服務\n\n### 只讓特定應用走 Karing（方案B）\n- 透過環境變數控制特定進程的代理行為\n- `HTTP_PROXY=http://127.0.0.1:3067`\n- 需要確認 Node.js 應用支援 `HTTP_PROXY` 環境變數\n\n### Karing 當成系統 Service 執行\n- Karing 支援 Menu Bar 運行\n- 設定「開機自動啟動」\n- 確認 Karing 有正確設定「自動設定系統代理」\n\n### 待確認\n- [ ] Karing 目前的「自動設定系統代理」是開還是關？\n- [ ] OpenClaw Gateway 的啟動方式是 Launchd 還是手動？\n- [ ] 有沒有其他在跑的外連需求？\n\n---\n\n## 待解決的三個問題\n\n1. **Karing 沒有在運行** — 需要啟動並確認作為系統代理\n2. **cfnew / BPB Panel 節點未優選** — 需要跑過延遲測試\n3. **OpenClaw 沒有指向 Karing 代理** — 需要設定環境變數或系統代理\n\n---\n\n## 建立日期：2026-04-05",
       "files": [
         {
@@ -107,11 +107,11 @@
       "title": "股票報告郵件",
       "status": "active",
       "progress": 0,
-      "description": "每週一自動發送，正常運行中",
+      "description": "每週一～五 07:00 自動發送；已修復 Feishu announce to 參數（p2p: oc_d8f9eb3eb4ec20d70cdcc198b2749534）；Gateway 曾於 2026-04-09 23:43 重啟（清理大量重複初始化的 worker 程序）",
       "tags": [],
       "completed": [],
       "pending": [],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "files": [
         {
           "name": "🛠️ stock-report-email Skill",
@@ -128,6 +128,20 @@
       ]
     },
     {
+      "id": "企業知識庫（企業化實驗）",
+      "title": "企業知識庫（企業化實驗）",
+      "status": "completed",
+      "progress": 100,
+      "description": "今晚討論完成架構規劃，等待硬體確認（20K RMB GPU 伺服器）",
+      "tags": [],
+      "completed": [],
+      "pending": [
+        "今晚討論完成架構規劃，等待硬體確認（20K RMB GPU 伺服器）"
+      ],
+      "lastUpdated": "2026/4/10",
+      "files": []
+    },
+    {
       "id": "mempalace（記憶系統）",
       "title": "MemPalace（記憶系統）",
       "status": "active",
@@ -138,7 +152,7 @@
       "pending": [
         "`notes/projects/mempalace.md`（待建立）"
       ],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "files": [
         {
           "name": "📝 notes/projects/mempalace.md",
@@ -159,7 +173,7 @@
       "pending": [
         "`openclaw-dashboard.pages.dev` 自訂網域待確認（目前 `dv8` subdomain 正常）"
       ],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "files": [
         {
           "name": "🔗 GitHub Repo",
@@ -184,7 +198,7 @@
         "send_email.py msg[\"Subject\"] 未設定 → ✅ 已修（2026-04-08）"
       ],
       "pending": [],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "files": [
         {
           "name": "🔗 GitHub Repo",
@@ -207,7 +221,7 @@
       "tags": [],
       "completed": [],
       "pending": [],
-      "lastUpdated": "2026/4/8",
+      "lastUpdated": "2026/4/10",
       "files": []
     },
     {
@@ -266,6 +280,20 @@
           "type": "local"
         }
       ]
+    },
+    {
+      "id": "企業知識庫-—-專案計畫",
+      "title": "企業知識庫 — 專案計畫",
+      "status": "active",
+      "progress": 0,
+      "description": "1. **Raw Data 處理**：PDF / Word 解析、清洗、NER 結構化",
+      "tags": [],
+      "body": "# 企業知識庫 — 專案計畫\n\n> 建立日期：2026-04-09\n> 負責人：阿洛（AI 助理）\n> 背景：集團資訊負責人的企業化 AI 應用實驗\n\n---\n\n## 目標\n\n建立一套自動化知識庫系統，具備：\n1. **Raw Data 處理**：PDF / Word 解析、清洗、NER 結構化\n2. **實體掛載**：Entity → 屬性寫入知識圖譜\n3. **向量化**：embedding 存索引，支援語意檢索\n4. **矛盾分析**：偵測同一實體在不同文件中的描述衝突\n5. **自然語言介面**：透過 OpenClaw 與人對話（搜尋、矛盾警報）\n\n---\n\n## 最終架構\n\n```\nRaw Data（PDF/Word）\n    ↓\n解析 → 清洗 → NER結構化 → Gemma（本機推理）\n    ↓\n知識圖譜（Entity + 屬性）\n    ↓\n矛盾分析（同一 Entity 的屬性比對）\n    ↓\n結果寫入共享儲存（NAS / NFS）\n    ↓\nOpenClaw 讀取 → 二次判斷（MiniMax）→ 濃縮報告 → 飛書\n    ↓\n人（查詢、接收矛盾警報）\n```\n\n---\n\n## 關鍵元件\n\n### 地端模型伺服器（20,000 RMB GPU 機器）\n- **顯示卡**：RTX 4090 24GB\n- **用途**：跑 Gemma 27B（4-bit 量化）+ Ollama\n- **安全**：完全隔離內網，不暴露任何 port\n\n### OpenClaw（本體）\n- **位置**：MBA 或機房隔離 VM（待確認）\n- **角色**：協調層（任務排程）+ 自然語言介面（對人）\n- **安全**：在 DMZ / 對外端口，需安全加固（見 AGENTS.md）\n\n### 共享儲存（NAS / NFS）\n- **用途**：Gemma 寫入分析結果 → OpenClaw 讀取\n- **格式**：`/shared/contradictions/YYYY-MM-DD.json`\n\n### 向量儲存（待選）\n- Milvus / Qdrant（地端）或記憶體暫存\n\n### 知識圖譜儲存（待選）\n- Neo4j（地端）或 JSON 檔案\n\n---\n\n## 數據流程\n\n### 矛盾判斷流程\n1. Gemma 每天跑一次全量分析\n2. 結果寫進 `contradiction-report.json`\n3. OpenClaw 早上 9 點讀取新檔案\n4. MiniMax 二次判斷（濃縮、分類）\n5. 透過飛書發送口語化報告\n\n### 搜尋流程（方案 A，推薦）\n```\n人：「幫我找 XXX 的資料」\n→ OpenClaw 翻譯成指令 → Gemma 向量搜尋\n→ 回傳片段 → MiniMax 合成 → 飛書回覆\n```\n\n---\n\n## 待確認事項\n\n| 項目 | 選項 | 優先級 |\n|------|------|--------|\n| OpenClaw 本體位置 | MBA（現在）or 機房 VM | 高 |\n| 機房網段隔離方式 | DMZ / VPN / 其他 | 高 |\n| 共享儲存 | NAS / NFS / 其他 | 高 |\n| 機房現有 GPU 算力 | A100 / H100 / 消費級卡 | 高 |\n| 向量儲存選型 | Milvus / Qdrant / 其他 | 中 |\n| 任務排程 | OpenClaw cron / 獨立排程器 | 中 |\n\n---\n\n## 已確認共識\n\n- **安全原則**：Gemma 伺服器不對外暴露；資料不經過 MiniMax（僅濃縮結果）\n- **人機介面**：OpenClaw 統一對人，Gemma 不直接接觸用戶\n- **矛盾判斷**：Gemma 一次判斷 + OpenClaw（MiniMax）二次確認\n- **硬體瓶頸**：MacBook Air 8GB 無法支撐企業級負載，GPU 伺服器是必要投資\n\n---\n\n## 進行中的實驗（個人 workspace）\n\n以下為在 OpenClaw 個人環境中的先行實驗，經驗將來轉移到企業系統：\n\n- ✅ 記憶歸檔自動化（每天 02:00 launchd）\n- ✅ Scrapling 網頁解析（優先於 web_fetch）\n- ✅ 向量相似度分析（memory-analysis.py，44 檔案）\n- ✅ Obsidian Vault 整合\n- ❌ 矛盾偵測（current approach 無效，需改用 Entity-based 比對）\n- 🔲 NER 結構化抽取（尚未實作）\n- 🔲 Gemma + Ollama 地端部署（等伺服器到位）\n- 🔲 共享儲存對接（等硬體確認）\n\n---\n\n## 核心觀念引用\n\n- **Andrej Karpathy「LLM Wiki」**：建立 AI 友善的 Markdown 知識庫\n- **Jack Clark（Import AI）**：未來專業人士的競爭力在於「個人數據庫的品質」+「調動 AI 處理數據的能力」\n- **Human-in-the-loop**：文件結構來自數據歸納，而非主觀設計；矛盾需人二次確認\n\n---\n\n_Last updated: 2026-04-09_",
+      "completed": [],
+      "pending": [],
+      "relatedNote": "notes/projects/enterprise-knowledge-base.md",
+      "lastUpdated": "2026/4/9",
+      "files": []
     },
     {
       "id": "台股季報爬蟲專案記憶",
@@ -366,6 +394,17 @@
       "path": "notes/projects/cloudflare.md",
       "date": "2026-04-07",
       "body": "# Cloudflare 專案\n\n## 摘要\n在中國境內透過 Cloudflare Worker 代理訪問被封鎖的國外搜尋引擎。\n\n## 架構\n```\n境內用戶 → Worker → 國外搜尋引擎（Google/Bing/DuckDuckGo）\n```\n\n## 現況（2026-04-07 更新）\n\n### ⚠️ Worker SSL 故障\n- `worker.downtoearthclf.ddns-ip.net` — SSL handshake failure（三層 subdomain 證書問題）\n- 原因：Cloudflare Universal SSL 不支援三層 subdomain（worker.xxx.xxx.xxx）\n\n### ✅ 目前可用：Cloudflare Pages\n\n#### openclaw-search（搜尋引擎）\n- **Pages Project**: `openclaw-search`\n- **穩定 URL**: `https://openclaw-search.pages.dev`\n- **Repo**: `openclawGit200/openclaw-search`\n- **Function**: `functions/search/index.js` → `/search/` route\n- **Engine**: tavily → Google → DuckDuckGo → ... 完整 cascade\n- **部署**: `gh workflow run deploy.yml --repo openclawGit200/openclaw-search`\n- **Custom Domain**: `search.downtoearthclf.ddns-ip.net`（需 Dashboard 手動加入）\n\n#### openclaw-dashboard（個人看板）\n- **Pages Project**: `openclaw-dashboard`\n- **URL**: `https://openclaw-dashboard-dv8.pages.dev` ✅ 正常\n- **Repo**: `openclawGit200/openclaw-dashboard`\n- **內容**: 6 區塊 Dashboard + D3.js 關聯圖\n- **⚠️ Custom Domain**: `openclaw-dashboard.pages.dev` 指向舊預設頁，待重新設定\n- **部署**: GitHub Actions `deploy.yml` → 自動 promote 到 production\n\n### 支援的 Engine 參數（線上 18 個）\n| engine | 目標 | 狀態 |\n|--------|------|------|\n| google | Google | ✅ |\n| google_hk | Google HK | ✅ |\n| bing | Bing | ✅ |\n| bing_cn | Bing CN | ✅ |\n| duckduckgo | DuckDuckGo | ✅ |\n| brave | Brave | ✅ |\n| startpage | Startpage | ✅ |\n| ecosia | Ecosia | ✅ |\n| qwant | Qwant | ✅ |\n| yahoo | Yahoo | ✅ |\n| baidu | 百度 | ✅ |\n| 360 | 360 搜索 | ✅ |\n| **sogou** | **搜狗** | **❌ 已移除（2026-04-07）** |\n| weixin | 微信搜尋 | ✅ |\n| toutiao | 頭條搜索 | ✅ |\n| jisilu | 集思錄 | ✅ |\n| **tavily** | **Tavily AI 搜尋** | **✅ 新增（2026-04-08）** |\n| cascade | 引擎級聯（tavily 優先） | ✅ |\n| zhipu | 智譜（AI 總結） | ✅ |\n\n### Cascade 順序（目前線上）\n```\ntavily → google → bing → duckduckgo → baidu → 360 → toutiao → weixin → jisilu → bing_cn → google_hk → brave → startpage → ecosia → qwant → yahoo\n```\n\n### Worker 路由格式\n```\nhttps://worker.downtoearthclf.ddns-ip.net/?q={關鍵詞}&engine={引擎名}\n```\n\n### SSL 問題（已擱置）\n- `worker.downtoearthclf.ddns-ip.net` 三層 subdomain 的 SSL 問題，決定不再處理。\n- 備援方案：直接使用 Pages URL `https://a13fd96d.openclaw-search.pages.dev` 或已連接的 `search.downtoearthclf.ddns-ip.net`（兩層 subdomain，Universal SSL 正常）\n\n### Cloudflare Pages: `openclaw-search`\n- **URL**: `https://0bb3e347.openclaw-search.pages.dev`\n- **wrangler 部署成功**（2026-04-02）\n- **Custom Domain**: 嘗試加入 `search.downtoearthclf.ddns-ip.net`，但 API 回傳 TLD 不支援\n- 需手動透過 Dashboard 加入 Custom Domain\n\n## 帳號\n- Email: downtoearth.tw@gmail.com\n- Account ID: 4636a1d26dcf5cf8ff663c6104f12d86\n- API Token：`.credentials/CLOUDFLARE_token.json` ✅ 已更新（2026-04-08）\n\n## 待辦\n1. ~~CF API Token 已過期~~ ✅ **已解決（2026-04-08）**：Token 已更新，GitHub Actions 部署正常運行\n2. ~~移除 Sogou~~ ✅ **已完成（2026-04-07）**\n3. ~~修復路由 `[route].js` → `search/index.js`~~ ✅ **已完成（2026-04-08）**\n4. ~~send_email.py msg[\"Subject\"] 未設定~~ ✅ **已修（2026-04-08）**\n5. `openclaw-dashboard.pages.dev` 自訂網域指向舊預設頁，需重新 promote 或重新設定 Custom Domain\n6. `search.downtoearthclf.ddns-ip.net` Custom Domain 需手動透過 Dashboard 加入\n7. Tavily API Key 已加入 `.credentials/CLOUDFARE_token.json`（2026-04-08）\n\n---\n\n## twse-reports-lib 語意搜尋計畫（開放台股 MD）\n\n### 目標\n將 GitHub 開放資料庫 `openclawGit200/twse-reports-lib`（2025 Q3+Q4 季報 MD）建構為可語意搜尋的網站。\n\n### 資料現況\n- Repo: https://github.com/openclawGit200/twse-reports-lib\n- Q4: 1,643 檔 MD | Q3: 434 檔 MD\n- 附 `scripts/summarize_stock.py` 供自行用 AI 產生新摘要\n\n### 技術方案（規劃中）\n- **Embedding**: Workers AI `@cf/baai/bge-base-en-v1.5`（768維）\n- **Index**: 本地建好後上傳至 CF KV Namespace\n- **Worker**: 接收用戶查詢 → 線上 embedding → Cosine similarity 搜 KV → 回傳最相關段落\n- **Frontend**: CF Pages 部署簡單搜尋介面\n- **URL**: `https://twse-reports-lib.pages.dev`（待設定）\n\n### 待解決\n- [ ] CF API token（有 Workers & Pages 權限）— 舊 token 無法通过 wrangler 認證\n\n## multi-search-engine Skill 設定\n- 設定檔: `skills/multi-search-engine/config.json`\n- `proxy_base`: `https://openclaw-search.pages.dev` ✅ 已更新（2026-04-08）\n\n## 重要教訓\n- Cloudflare Universal SSL 只涵蓋 apex + 一層 subdomain\n- `*.ddns-ip.net` 的二層 subdomain（`downtoearthclf.ddns-ip.net`）可以，三層不行\n- Free 方案無法用 Total TLS\n- ClouDNS NS 委託的 zone 在 Cloudflare 的 SSL 覆蓋範圍有特殊限制",
+      "connections": []
+    },
+    {
+      "id": "notes-enterprise-knowledge-base",
+      "title": "企業知識庫 — 專案計畫",
+      "description": "1. **Raw Data 處理**：PDF / Word 解析、清洗、NER 結構化",
+      "tags": [],
+      "source": "notes",
+      "path": "notes/projects/enterprise-knowledge-base.md",
+      "date": "2026-04-09",
+      "body": "# 企業知識庫 — 專案計畫\n\n> 建立日期：2026-04-09\n> 負責人：阿洛（AI 助理）\n> 背景：集團資訊負責人的企業化 AI 應用實驗\n\n---\n\n## 目標\n\n建立一套自動化知識庫系統，具備：\n1. **Raw Data 處理**：PDF / Word 解析、清洗、NER 結構化\n2. **實體掛載**：Entity → 屬性寫入知識圖譜\n3. **向量化**：embedding 存索引，支援語意檢索\n4. **矛盾分析**：偵測同一實體在不同文件中的描述衝突\n5. **自然語言介面**：透過 OpenClaw 與人對話（搜尋、矛盾警報）\n\n---\n\n## 最終架構\n\n```\nRaw Data（PDF/Word）\n    ↓\n解析 → 清洗 → NER結構化 → Gemma（本機推理）\n    ↓\n知識圖譜（Entity + 屬性）\n    ↓\n矛盾分析（同一 Entity 的屬性比對）\n    ↓\n結果寫入共享儲存（NAS / NFS）\n    ↓\nOpenClaw 讀取 → 二次判斷（MiniMax）→ 濃縮報告 → 飛書\n    ↓\n人（查詢、接收矛盾警報）\n```\n\n---\n\n## 關鍵元件\n\n### 地端模型伺服器（20,000 RMB GPU 機器）\n- **顯示卡**：RTX 4090 24GB\n- **用途**：跑 Gemma 27B（4-bit 量化）+ Ollama\n- **安全**：完全隔離內網，不暴露任何 port\n\n### OpenClaw（本體）\n- **位置**：MBA 或機房隔離 VM（待確認）\n- **角色**：協調層（任務排程）+ 自然語言介面（對人）\n- **安全**：在 DMZ / 對外端口，需安全加固（見 AGENTS.md）\n\n### 共享儲存（NAS / NFS）\n- **用途**：Gemma 寫入分析結果 → OpenClaw 讀取\n- **格式**：`/shared/contradictions/YYYY-MM-DD.json`\n\n### 向量儲存（待選）\n- Milvus / Qdrant（地端）或記憶體暫存\n\n### 知識圖譜儲存（待選）\n- Neo4j（地端）或 JSON 檔案\n\n---\n\n## 數據流程\n\n### 矛盾判斷流程\n1. Gemma 每天跑一次全量分析\n2. 結果寫進 `contradiction-report.json`\n3. OpenClaw 早上 9 點讀取新檔案\n4. MiniMax 二次判斷（濃縮、分類）\n5. 透過飛書發送口語化報告\n\n### 搜尋流程（方案 A，推薦）\n```\n人：「幫我找 XXX 的資料」\n→ OpenClaw 翻譯成指令 → Gemma 向量搜尋\n→ 回傳片段 → MiniMax 合成 → 飛書回覆\n```\n\n---\n\n## 待確認事項\n\n| 項目 | 選項 | 優先級 |\n|------|------|--------|\n| OpenClaw 本體位置 | MBA（現在）or 機房 VM | 高 |\n| 機房網段隔離方式 | DMZ / VPN / 其他 | 高 |\n| 共享儲存 | NAS / NFS / 其他 | 高 |\n| 機房現有 GPU 算力 | A100 / H100 / 消費級卡 | 高 |\n| 向量儲存選型 | Milvus / Qdrant / 其他 | 中 |\n| 任務排程 | OpenClaw cron / 獨立排程器 | 中 |\n\n---\n\n## 已確認共識\n\n- **安全原則**：Gemma 伺服器不對外暴露；資料不經過 MiniMax（僅濃縮結果）\n- **人機介面**：OpenClaw 統一對人，Gemma 不直接接觸用戶\n- **矛盾判斷**：Gemma 一次判斷 + OpenClaw（MiniMax）二次確認\n- **硬體瓶頸**：MacBook Air 8GB 無法支撐企業級負載，GPU 伺服器是必要投資\n\n---\n\n## 進行中的實驗（個人 workspace）\n\n以下為在 OpenClaw 個人環境中的先行實驗，經驗將來轉移到企業系統：\n\n- ✅ 記憶歸檔自動化（每天 02:00 launchd）\n- ✅ Scrapling 網頁解析（優先於 web_fetch）\n- ✅ 向量相似度分析（memory-analysis.py，44 檔案）\n- ✅ Obsidian Vault 整合\n- ❌ 矛盾偵測（current approach 無效，需改用 Entity-based 比對）\n- 🔲 NER 結構化抽取（尚未實作）\n- 🔲 Gemma + Ollama 地端部署（等伺服器到位）\n- 🔲 共享儲存對接（等硬體確認）\n\n---\n\n## 核心觀念引用\n\n- **Andrej Karpathy「LLM Wiki」**：建立 AI 友善的 Markdown 知識庫\n- **Jack Clark（Import AI）**：未來專業人士的競爭力在於「個人數據庫的品質」+「調動 AI 處理數據的能力」\n- **Human-in-the-loop**：文件結構來自數據歸納，而非主觀設計；矛盾需人二次確認\n\n---\n\n_Last updated: 2026-04-09_",
       "connections": []
     },
     {
@@ -755,71 +794,6 @@
       "connections": []
     },
     {
-      "id": "memory-2026-03-17",
-      "title": "2026-03-17",
-      "description": "- 13:52 用户进行了测试消息发送，测试连通性",
-      "tags": [],
-      "source": "memory",
-      "stockId": "2026",
-      "companyName": "03 17",
-      "path": "memory/2026-03-17.md",
-      "date": "2026-03-17",
-      "body": "2026-03-17\n\n- 13:52 用户进行了测试消息发送，测试连通性\n- 17:34 创建了定时任务，每三个小时 restart gateway，任务 ID: f207d73a-059b-42ed-b202-6ee1b6c197a4\n- 18:xx 测试记忆功能写入读取，移除了 memory-lancedb-pro 插件，因为 NVIDIA embedding API 一直认证失败\n- 现在使用默认的 memory-core 插件，只提供基础 FTS 全文搜索",
-      "connections": []
-    },
-    {
-      "id": "memory-2026-03-18",
-      "title": "2026-03-18 日誌",
-      "description": "1. 清理了 `memory-lancedb-pro` 配置警告，從 config 中移除了已停用但還存在的配置條目",
-      "tags": [],
-      "source": "memory",
-      "stockId": "2026",
-      "companyName": "03 18",
-      "path": "memory/2026-03-18.md",
-      "date": "2026-03-18",
-      "body": "# 2026-03-18 日誌\n\n## 完成事項\n1. 清理了 `memory-lancedb-pro` 配置警告，從 config 中移除了已停用但還存在的配置條目\n2. 修復了 Node.js 模組警告：在 `/Users/downtoearth/package.json` 加入了 `\"type\": \"module\"` 消除警告\n3. 建立了主動構想筆記 `notes/areas/proactive-ideas.md`，記錄了可以幫主人做得更好的想法\n4. 執行了定時 gateway 重啟，完成系統更新\n5. 檢查了飛書連線權限，確認 1041 個權限都正常授予，沒有問題\n6. 執行了定時 gateway 重啟（第二次），系統保持最新狀態\n\n## 今日學習\n- OpenClaw 配置文件在 `~/.openclaw/openclaw.json`，不是 `~/.openclaw/config.json`\n- 清理配置警告只需要從 `plugins.allow` 和 `plugins.entries` 中移除對應條目即可\n- Node.js 需要明確指定 `type: module` 來解析 ES 模組\n- 系統預設只有 `python3`，沒有 `python` 別名，技能腳本需要改用 `python3`\n- `pdftotext` 需要安裝 poppler 才能使用，是 summarize 技能的依賴\n- Homebrew 正在自動安裝 poppler，安裝完成後 `pdftotext` 就可以使用了\n\n## 發現問題\n1. **`python` 指令找不到**：系統只安裝了 `python3`，技能腳本中使用 `python` 會失敗，需要改成 `python3`\n2. **`pip` 指令找不到**：同樣需要改成 `pip3`\n3. **偶發 LLM 請求超時**：火山引擎和 NVIDIA 模型都偶爾會出現超時，屬於網路偶發問題\n4. **上下文溢出**：有幾次因為 token 超過最大限制導致請求失敗，建議適時重啟新會話\n5. **`pdftotext` 找不到**：summarize 技能需要 poppler 工具，正在透過 Homebrew 安裝中\n\n## 開放問題\n- 主人正在研究台灣股市財報爬蟲，後續可以協助優化自動化流程，修復 python 路徑問題\n- poppler 安裝完成後，summarize 技能就可以正常處理 PDF 了",
-      "connections": []
-    },
-    {
-      "id": "memory-2026-03-26",
-      "title": "2026-03-26 - 微信插件安裝問題解決日誌",
-      "description": "今日解決了微信插件安裝過程中的一系列問題，整理關鍵決策和經驗：",
-      "tags": [],
-      "source": "memory",
-      "stockId": "2026",
-      "companyName": "03 26",
-      "path": "memory/2026-03-26.md",
-      "date": "2026-03-26",
-      "body": "# 2026-03-26 - 微信插件安裝問題解決日誌\n\n今日解決了微信插件安裝過程中的一系列問題，整理關鍵決策和經驗：\n\n## 問題 1：版本檢測錯誤\n- **症狀：** `weixin-installer` 一直檢測到 OpenClaw 版本爲 2026.2.26，但實際是 2026.3.24\n- **原因：** npx 緩存了舊版本的安裝器\n- **解決方案：**\n  1.  `npx clear-npx-cache` 清理緩存\n  2.  `npm install -g @tencent-weixin/openclaw-weixin-cli@2.0.x` 全局安裝正確版本\n  3.  使用 `weixin-installer install` 替代 `npx` 方式\n\n## 問題 2：插件未編譯\n- **症狀：** 安裝完成後找不到編譯後的 JS 文件\n- **原因：** 下載源代碼後需要自己編譯 TypeScript，但缺少 `tsconfig.json`\n- **解決方案：**\n  1.  創建基本的 `tsconfig.json`：\n      ```json\n      {\n        \"compilerOptions\": {\n          \"target\": \"ES2022\",\n          \"module\": \"NodeNext\",\n          \"moduleResolution\": \"NodeNext\",\n          \"outDir\": \"dist\",\n          \"strict\": true,\n          \"esModuleInterop\": true,\n          \"skipLibCheck\": true\n        },\n        \"include\": [\"index.ts\", \"src/**/*\"]\n      }\n      ```\n  2.  `npm install && npm run build`\n\n## 問題 3：ClawHub API 速率限制 (429)\n- **症狀：** `ClawHub /api/v1/packages/... failed (429): Rate limit exceeded`\n- **原因：** 多次請求後被限流\n- **解決方案：**\n  1.  如果插件已經在本地，直接確保編譯完成\n  2.  重啟 gateway 後使用正確命令觸發登錄：\n      ```bash\n      openclaw channels login --channel openclaw-weixin\n      ```\n\n## 問題 4：二維碼反覆顯示過期\n- **原因：** 可能是網絡問題或者服務器端快速過期\n- **解決方案：**\n  1.  殺掉當前進程\n  2.  重新執行 `openclaw channels login --channel openclaw-weixin` 生成全新二維碼\n  3.  儘快掃碼\n\n## 關鍵命令總結\n| 任務 | 正確命令 |\n|------|---------|\n| 生成登錄二維碼 | `openclaw channels login --channel openclaw-weixin` |\n| 卸載插件 | `yes y | openclaw openclaw-weixin uninstall` |\n| 檢查狀態 | `openclaw status` |\n| 重啟網關 | `openclaw gateway restart` |\n\n## 今日決策\n- 用戶要求移除微信插件，已完成完全卸載（包括配置、目錄、允許列表）\n- 預先整理了故障排查筆記，方便下次安裝參考",
-      "connections": []
-    },
-    {
-      "id": "memory-2026-03-30-stock-crawler-session",
-      "title": "2026-03-30 台股季報爬蟲工作日誌",
-      "description": "- **現象**：使用 `--check-existing` 時，只要 Q4 目錄裡有任何 1 個筆記，全季都會被 skip",
-      "tags": [],
-      "source": "memory",
-      "stockId": "2026",
-      "companyName": "03 30 stock crawler session",
-      "path": "memory/2026-03-30-stock-crawler-session.md",
-      "date": "2026-03-30",
-      "body": "# 2026-03-30 台股季報爬蟲工作日誌\n\n## 錯誤與修正\n\n### 1. `--check-existing` 跳過邏輯有 bug\n- **現象**：使用 `--check-existing` 時，只要 Q4 目錄裡有任何 1 個筆記，全季都會被 skip\n- **根因 1**：`check_existing_reports` 只要 `md_count > 0` 就回傳 `True`\n- **根因 2**：主程式 `if has_existing: return`，不進入逐檔處理\n- **修正**：\n  - 全季檢查改為「全部股票都有筆記」才 skip\n  - 逐檔檢查改為同時嘗試有/無 company_name 兩種檔名格式\n\n### 2. Mac 睡眠導致 run_at_23h.py 失效\n- **現象**：23:00 到但爬蟲沒啟動，log 只有一行 \"等待中\"\n- **原因**：`time.sleep()` 在 Mac 睡眠期間不會計時\n- **修正**：使用 `StartCalendarInterval` 的 launchd plist，時間精確不受睡眠影響\n\n## 技術决策\n\n### stocks_list.txt\n- 位置：`~/.openclaw/workspace/skills/台股季報/stocks_list.txt`\n- 來源：整理自 Mar 19 的股號清單（`股號清單---0f58bd03-...`）\n- 共 1944 檔，ETF 被 `exclude_list.txt` 排除，實際處理約 1870 檔\n\n### 季度自動判定（2026-03 時間點）\n- 3月 → 下載 2025 Q4 季報（邏輯：1-3月取去年Q4）\n- TWSE URL filename：`{YYYY}{MM}_{stock_id}_AI1.pdf`，例如 `202504_1101_AI1.pdf`\n\n### Chromedriver\n- 路徑：`/opt/homebrew/bin/chromedriver`\n- 需在 PATH 中，launchd plist 的 `EnvironmentVariables.PATH` 要明確包含\n\n## 待修復\n- [ ] `run_at_23h.py` 改用 launchd plist，定時不受睡眠影響\n- [ ] `summarize` CLI 路徑問題，有時找不到命令",
-      "connections": []
-    },
-    {
-      "id": "memory-2026-03-31-api-research",
-      "title": "2026-03-31 API 研究記錄",
-      "description": "- 用戶提供新的 Fugle API Key: `fcdf5a2c-759e-46d0-a2ea-83f7a8ee68d8`",
-      "tags": [],
-      "source": "memory",
-      "stockId": "2026",
-      "companyName": "03 31 api research",
-      "path": "memory/2026-03-31-api-research.md",
-      "date": "2026-03-31",
-      "body": "# 2026-03-31 API 研究記錄\n\n## 今日重大事件\n\n### 1. Fugle API Key 更新 → 失效\n- 用戶提供新的 Fugle API Key: `fcdf5a2c-759e-46d0-a2ea-83f7a8ee68d8`\n- 正確端點: `https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/2330`\n- 所有端點都回 401 Unauthorized，Key 已無效\n- `.credentials/fugle.json` 已刪除\n\n### 2. 技能刪除\n- 刪除 `tw-stock-info`（Fugle/FinMind 台股）\n- 刪除 `bailian-web-search`（百川 web search）\n- `.credentials/fugle.json` 也同步刪除\n\n### 3. stock-data-skill 研究（openstockdata）\n- GitHub: https://github.com/openstockdata/stock-data-skill\n- 47 tools，A 股/港股/美股/加密貨幣\n- 依賴 akshare（Linux 原生庫，macOS pip 安裝會有問題）\n- 需要 `TUSHARE_TOKEN`（A股）、`ALPHA_VANTAGE_API_KEY`（美股備援）\n- **未安裝**（不支援台股且有 Linux 依賴問題）\n\n### 4. Finnhub 研究\n- `/news?category=general` 免費，但只有 4 種 category: general/forex/crypto/merger\n- 台股（TPEx）不支援\n- 美股即時報價免費\n- 付費功能多（財報、評級、發布會等）\n\n### 5. Twelve Data 研究\n- 明確不支援台股\n- 免費 800 req/day\n\n### 6. 財報狗（statementdog.com）研究\n- 技術栈: Rails + Vue SPA，有 CSRF token 保護\n- JS bundle 中找到 API 端點: `/api/v1/stocks/`、`/api/v2/fundamentals/`\n- 頁面需要登入，API 需要有效 CSRF token\n- **可行方案**: CDP (Chrome DevTools Protocol) 接管瀏覽器\n  - 用戶需在 Chrome 加上 `--remote-debugging-port=9222` 啟動\n  - 然後用 `agent-browser --cdp 9222` 接管\n  - 用戶提出但**尚未回應是否執行**\n\n### 7. RSS Feed 研究\n- MoneyDJ 和工商時報的 RSS URL 全部被封鎖/無回應\n- RSS Reader 技能存在多個候選（clawhub 上）\n- 但 RSS source 本身不可用\n\n## 待完成\n- [ ] CDP 接管財報狗（用戶未回應）\n- [ ] 台股爬蟲從 1307 以後繼續（昨晚 OOM kill）\n\n## 下次繼續研究方向\n- NewsAPI（免費 100 req/day，可過濾 technology/business）\n- 用 CDP + statementdog.com 評估可行性",
-      "connections": []
-    },
-    {
       "id": "memory-2026-04-02-zhipu-cloudflare",
       "title": "2026-04-02 Daily Notes",
       "description": "- **embeddinggemma** replaced all-minilm → `openclaw.json` `memorySearch.model` set to `embeddinggemma:latest` (2048 tok",
@@ -872,6 +846,93 @@
       "connections": []
     },
     {
+      "id": "memory-2026-03-17",
+      "title": "2026-03-17",
+      "description": "- 13:52 用户进行了测试消息发送，测试连通性",
+      "tags": [],
+      "source": "memory",
+      "stockId": "2026",
+      "companyName": "03 17",
+      "path": "memory/archive/2026-03/2026-03-17.md",
+      "date": "2026-03-17",
+      "body": "2026-03-17\n\n- 13:52 用户进行了测试消息发送，测试连通性\n- 17:34 创建了定时任务，每三个小时 restart gateway，任务 ID: f207d73a-059b-42ed-b202-6ee1b6c197a4\n- 18:xx 测试记忆功能写入读取，移除了 memory-lancedb-pro 插件，因为 NVIDIA embedding API 一直认证失败\n- 现在使用默认的 memory-core 插件，只提供基础 FTS 全文搜索",
+      "connections": []
+    },
+    {
+      "id": "memory-2026-03-18",
+      "title": "2026-03-18 日誌",
+      "description": "1. 清理了 `memory-lancedb-pro` 配置警告，從 config 中移除了已停用但還存在的配置條目",
+      "tags": [],
+      "source": "memory",
+      "stockId": "2026",
+      "companyName": "03 18",
+      "path": "memory/archive/2026-03/2026-03-18.md",
+      "date": "2026-03-18",
+      "body": "# 2026-03-18 日誌\n\n## 完成事項\n1. 清理了 `memory-lancedb-pro` 配置警告，從 config 中移除了已停用但還存在的配置條目\n2. 修復了 Node.js 模組警告：在 `/Users/downtoearth/package.json` 加入了 `\"type\": \"module\"` 消除警告\n3. 建立了主動構想筆記 `notes/areas/proactive-ideas.md`，記錄了可以幫主人做得更好的想法\n4. 執行了定時 gateway 重啟，完成系統更新\n5. 檢查了飛書連線權限，確認 1041 個權限都正常授予，沒有問題\n6. 執行了定時 gateway 重啟（第二次），系統保持最新狀態\n\n## 今日學習\n- OpenClaw 配置文件在 `~/.openclaw/openclaw.json`，不是 `~/.openclaw/config.json`\n- 清理配置警告只需要從 `plugins.allow` 和 `plugins.entries` 中移除對應條目即可\n- Node.js 需要明確指定 `type: module` 來解析 ES 模組\n- 系統預設只有 `python3`，沒有 `python` 別名，技能腳本需要改用 `python3`\n- `pdftotext` 需要安裝 poppler 才能使用，是 summarize 技能的依賴\n- Homebrew 正在自動安裝 poppler，安裝完成後 `pdftotext` 就可以使用了\n\n## 發現問題\n1. **`python` 指令找不到**：系統只安裝了 `python3`，技能腳本中使用 `python` 會失敗，需要改成 `python3`\n2. **`pip` 指令找不到**：同樣需要改成 `pip3`\n3. **偶發 LLM 請求超時**：火山引擎和 NVIDIA 模型都偶爾會出現超時，屬於網路偶發問題\n4. **上下文溢出**：有幾次因為 token 超過最大限制導致請求失敗，建議適時重啟新會話\n5. **`pdftotext` 找不到**：summarize 技能需要 poppler 工具，正在透過 Homebrew 安裝中\n\n## 開放問題\n- 主人正在研究台灣股市財報爬蟲，後續可以協助優化自動化流程，修復 python 路徑問題\n- poppler 安裝完成後，summarize 技能就可以正常處理 PDF 了",
+      "connections": []
+    },
+    {
+      "id": "memory-2026-03-26",
+      "title": "2026-03-26 - 微信插件安裝問題解決日誌",
+      "description": "今日解決了微信插件安裝過程中的一系列問題，整理關鍵決策和經驗：",
+      "tags": [],
+      "source": "memory",
+      "stockId": "2026",
+      "companyName": "03 26",
+      "path": "memory/archive/2026-03/2026-03-26.md",
+      "date": "2026-03-26",
+      "body": "# 2026-03-26 - 微信插件安裝問題解決日誌\n\n今日解決了微信插件安裝過程中的一系列問題，整理關鍵決策和經驗：\n\n## 問題 1：版本檢測錯誤\n- **症狀：** `weixin-installer` 一直檢測到 OpenClaw 版本爲 2026.2.26，但實際是 2026.3.24\n- **原因：** npx 緩存了舊版本的安裝器\n- **解決方案：**\n  1.  `npx clear-npx-cache` 清理緩存\n  2.  `npm install -g @tencent-weixin/openclaw-weixin-cli@2.0.x` 全局安裝正確版本\n  3.  使用 `weixin-installer install` 替代 `npx` 方式\n\n## 問題 2：插件未編譯\n- **症狀：** 安裝完成後找不到編譯後的 JS 文件\n- **原因：** 下載源代碼後需要自己編譯 TypeScript，但缺少 `tsconfig.json`\n- **解決方案：**\n  1.  創建基本的 `tsconfig.json`：\n      ```json\n      {\n        \"compilerOptions\": {\n          \"target\": \"ES2022\",\n          \"module\": \"NodeNext\",\n          \"moduleResolution\": \"NodeNext\",\n          \"outDir\": \"dist\",\n          \"strict\": true,\n          \"esModuleInterop\": true,\n          \"skipLibCheck\": true\n        },\n        \"include\": [\"index.ts\", \"src/**/*\"]\n      }\n      ```\n  2.  `npm install && npm run build`\n\n## 問題 3：ClawHub API 速率限制 (429)\n- **症狀：** `ClawHub /api/v1/packages/... failed (429): Rate limit exceeded`\n- **原因：** 多次請求後被限流\n- **解決方案：**\n  1.  如果插件已經在本地，直接確保編譯完成\n  2.  重啟 gateway 後使用正確命令觸發登錄：\n      ```bash\n      openclaw channels login --channel openclaw-weixin\n      ```\n\n## 問題 4：二維碼反覆顯示過期\n- **原因：** 可能是網絡問題或者服務器端快速過期\n- **解決方案：**\n  1.  殺掉當前進程\n  2.  重新執行 `openclaw channels login --channel openclaw-weixin` 生成全新二維碼\n  3.  儘快掃碼\n\n## 關鍵命令總結\n| 任務 | 正確命令 |\n|------|---------|\n| 生成登錄二維碼 | `openclaw channels login --channel openclaw-weixin` |\n| 卸載插件 | `yes y | openclaw openclaw-weixin uninstall` |\n| 檢查狀態 | `openclaw status` |\n| 重啟網關 | `openclaw gateway restart` |\n\n## 今日決策\n- 用戶要求移除微信插件，已完成完全卸載（包括配置、目錄、允許列表）\n- 預先整理了故障排查筆記，方便下次安裝參考",
+      "connections": []
+    },
+    {
+      "id": "memory-2026-03-30-stock-crawler-session",
+      "title": "2026-03-30 台股季報爬蟲工作日誌",
+      "description": "- **現象**：使用 `--check-existing` 時，只要 Q4 目錄裡有任何 1 個筆記，全季都會被 skip",
+      "tags": [],
+      "source": "memory",
+      "stockId": "2026",
+      "companyName": "03 30 stock crawler session",
+      "path": "memory/archive/2026-03/2026-03-30-stock-crawler-session.md",
+      "date": "2026-03-30",
+      "body": "# 2026-03-30 台股季報爬蟲工作日誌\n\n## 錯誤與修正\n\n### 1. `--check-existing` 跳過邏輯有 bug\n- **現象**：使用 `--check-existing` 時，只要 Q4 目錄裡有任何 1 個筆記，全季都會被 skip\n- **根因 1**：`check_existing_reports` 只要 `md_count > 0` 就回傳 `True`\n- **根因 2**：主程式 `if has_existing: return`，不進入逐檔處理\n- **修正**：\n  - 全季檢查改為「全部股票都有筆記」才 skip\n  - 逐檔檢查改為同時嘗試有/無 company_name 兩種檔名格式\n\n### 2. Mac 睡眠導致 run_at_23h.py 失效\n- **現象**：23:00 到但爬蟲沒啟動，log 只有一行 \"等待中\"\n- **原因**：`time.sleep()` 在 Mac 睡眠期間不會計時\n- **修正**：使用 `StartCalendarInterval` 的 launchd plist，時間精確不受睡眠影響\n\n## 技術决策\n\n### stocks_list.txt\n- 位置：`~/.openclaw/workspace/skills/台股季報/stocks_list.txt`\n- 來源：整理自 Mar 19 的股號清單（`股號清單---0f58bd03-...`）\n- 共 1944 檔，ETF 被 `exclude_list.txt` 排除，實際處理約 1870 檔\n\n### 季度自動判定（2026-03 時間點）\n- 3月 → 下載 2025 Q4 季報（邏輯：1-3月取去年Q4）\n- TWSE URL filename：`{YYYY}{MM}_{stock_id}_AI1.pdf`，例如 `202504_1101_AI1.pdf`\n\n### Chromedriver\n- 路徑：`/opt/homebrew/bin/chromedriver`\n- 需在 PATH 中，launchd plist 的 `EnvironmentVariables.PATH` 要明確包含\n\n## 待修復\n- [ ] `run_at_23h.py` 改用 launchd plist，定時不受睡眠影響\n- [ ] `summarize` CLI 路徑問題，有時找不到命令",
+      "connections": []
+    },
+    {
+      "id": "memory-2026-03-31-api-research",
+      "title": "2026-03-31 API 研究記錄",
+      "description": "- 用戶提供新的 Fugle API Key: `fcdf5a2c-759e-46d0-a2ea-83f7a8ee68d8`",
+      "tags": [],
+      "source": "memory",
+      "stockId": "2026",
+      "companyName": "03 31 api research",
+      "path": "memory/archive/2026-03/2026-03-31-api-research.md",
+      "date": "2026-03-31",
+      "body": "# 2026-03-31 API 研究記錄\n\n## 今日重大事件\n\n### 1. Fugle API Key 更新 → 失效\n- 用戶提供新的 Fugle API Key: `fcdf5a2c-759e-46d0-a2ea-83f7a8ee68d8`\n- 正確端點: `https://api.fugle.tw/marketdata/v1.0/stock/intraday/quote/2330`\n- 所有端點都回 401 Unauthorized，Key 已無效\n- `.credentials/fugle.json` 已刪除\n\n### 2. 技能刪除\n- 刪除 `tw-stock-info`（Fugle/FinMind 台股）\n- 刪除 `bailian-web-search`（百川 web search）\n- `.credentials/fugle.json` 也同步刪除\n\n### 3. stock-data-skill 研究（openstockdata）\n- GitHub: https://github.com/openstockdata/stock-data-skill\n- 47 tools，A 股/港股/美股/加密貨幣\n- 依賴 akshare（Linux 原生庫，macOS pip 安裝會有問題）\n- 需要 `TUSHARE_TOKEN`（A股）、`ALPHA_VANTAGE_API_KEY`（美股備援）\n- **未安裝**（不支援台股且有 Linux 依賴問題）\n\n### 4. Finnhub 研究\n- `/news?category=general` 免費，但只有 4 種 category: general/forex/crypto/merger\n- 台股（TPEx）不支援\n- 美股即時報價免費\n- 付費功能多（財報、評級、發布會等）\n\n### 5. Twelve Data 研究\n- 明確不支援台股\n- 免費 800 req/day\n\n### 6. 財報狗（statementdog.com）研究\n- 技術栈: Rails + Vue SPA，有 CSRF token 保護\n- JS bundle 中找到 API 端點: `/api/v1/stocks/`、`/api/v2/fundamentals/`\n- 頁面需要登入，API 需要有效 CSRF token\n- **可行方案**: CDP (Chrome DevTools Protocol) 接管瀏覽器\n  - 用戶需在 Chrome 加上 `--remote-debugging-port=9222` 啟動\n  - 然後用 `agent-browser --cdp 9222` 接管\n  - 用戶提出但**尚未回應是否執行**\n\n### 7. RSS Feed 研究\n- MoneyDJ 和工商時報的 RSS URL 全部被封鎖/無回應\n- RSS Reader 技能存在多個候選（clawhub 上）\n- 但 RSS source 本身不可用\n\n## 待完成\n- [ ] CDP 接管財報狗（用戶未回應）\n- [ ] 台股爬蟲從 1307 以後繼續（昨晚 OOM kill）\n\n## 下次繼續研究方向\n- NewsAPI（免費 100 req/day，可過濾 technology/business）\n- 用 CDP + statementdog.com 評估可行性",
+      "connections": []
+    },
+    {
+      "id": "memory-analysis-2026-04-09",
+      "title": "記憶關聯分析報告 — 2026-04-09 20:48",
+      "description": "- **Session: 2026-04-09 08:44:25 UTC** ↔ **Session: 2026-04-09 09:19:08 UTC**  `1.00`",
+      "tags": [],
+      "source": "memory",
+      "path": "memory/archive/analysis-2026-04-09.md",
+      "date": "2026-04-09",
+      "body": "# 記憶關聯分析報告 — 2026-04-09 20:48\n\n分析範圍：44 個 .md 檔案\n\n---\n\n## 高度相關（相似度 > 72%）\n\n- **Session: 2026-04-09 08:44:25 UTC** ↔ **Session: 2026-04-09 09:19:08 UTC**  `1.00`\n- **Session: 2026-04-09 09:17:49 UTC** ↔ **Session: 2026-04-09 09:19:12 UTC**  `0.99`\n- **Session: 2026-04-09 08:05:38 UTC** ↔ **Session: 2026-04-09 09:19:12 UTC**  `0.99`\n- **Session: 2026-04-09 08:05:38 UTC** ↔ **Session: 2026-04-09 09:17:49 UTC**  `0.99`\n- **Session: 2026-04-09 09:19:08 UTC** ↔ **Session: 2026-04-09 09:19:12 UTC**  `0.96`\n- **Session: 2026-04-09 08:05:38 UTC** ↔ **Session: 2026-04-09 08:44:25 UTC**  `0.96`\n- **Session: 2026-04-09 08:05:38 UTC** ↔ **Session: 2026-04-09 09:19:08 UTC**  `0.96`\n- **Session: 2026-04-09 08:44:25 UTC** ↔ **Session: 2026-04-09 09:19:12 UTC**  `0.96`\n- **Session: 2026-04-09 09:17:49 UTC** ↔ **Session: 2026-04-09 09:19:08 UTC**  `0.95`\n- **Session: 2026-04-09 08:44:25 UTC** ↔ **Session: 2026-04-09 09:17:49 UTC**  `0.95`\n- **Session: 2026-04-02 04:53:06 UTC** ↔ **Session: 2026-04-09 00:19:52 UTC**  `0.93`\n- **Session: 2026-04-09 07:46:10 UTC** ↔ **Session: 2026-04-09 00:19:52 UTC**  `0.92`\n- **Session: 2026-04-08 10:06:52 UTC** ↔ **Session: 2026-04-09 07:46:10 UTC**  `0.92`\n- **Session: 2026-04-09 09:17:49 UTC** ↔ **Session: 2026-04-09 09:18:46 UTC**  `0.91`\n- **Session: 2026-04-09 08:05:38 UTC** ↔ **Session: 2026-04-09 09:18:46 UTC**  `0.91`\n- **Session: 2026-04-09 09:18:46 UTC** ↔ **Session: 2026-04-09 09:19:12 UTC**  `0.91`\n- **Session: 2026-04-09 08:44:25 UTC** ↔ **Session: 2026-04-09 09:18:46 UTC**  `0.89`\n- **Session: 2026-04-09 09:19:08 UTC** ↔ **Session: 2026-04-09 09:18:46 UTC**  `0.89`\n- **Session: 2026-04-08 10:06:52 UTC** ↔ **Session: 2026-04-09 00:19:52 UTC**  `0.89`\n- **Session: 2026-04-02 04:53:06 UTC** ↔ **Session: 2026-04-09 07:46:10 UTC**  `0.88`\n\n---\n\n## 可能矛盾（相似度 < 22%）\n\n- ⚠️ **台南美食** vs **Skill Template**  `0.08`\n- ⚠️ **台南美食** vs **Errors Log**  `0.08`\n- ⚠️ **Session: 2026-04-09 09:18:46 UTC** vs **台南美食**  `0.09`\n- ⚠️ **台南美食** vs **Feature Requests Log**  `0.09`\n- ⚠️ **Session: 2026-04-09 09:19:12 UTC** vs **台南美食**  `0.11`\n- ⚠️ **Session: 2026-04-09 08:05:38 UTC** vs **台南美食**  `0.12`\n- ⚠️ **Session: 2026-04-09 09:17:49 UTC** vs **台南美食**  `0.12`\n- ⚠️ **Session: 2026-04-09 08:44:25 UTC** vs **台南美食**  `0.12`\n- ⚠️ **2026-04-02 Daily Notes** vs **台南美食**  `0.12`\n- ⚠️ **Session: 2026-04-09 09:19:08 UTC** vs **台南美食**  `0.12`\n- ⚠️ **台南美食** vs **OpenClaw 微信插件安裝故障排查**  `0.13`\n- ⚠️ **台南美食** vs **這是你的新儲存庫 *vault*.**  `0.14`\n- ⚠️ **台南美食** vs **OpenClaw Agent 設定記憶**  `0.17`\n- ⚠️ **日劇觀察筆記** vs **Skill Template**  `0.17`\n- ⚠️ **Session: 2026-04-03 08:22:34 UTC** vs **台南美食**  `0.18`\n\n---\n\n## 全部檔案清單\n\n- workspace/memory/2026-03-19-twse-financial-crawl.md: Session: 2026-03-19 00:29:48 UTC\n- workspace/memory/2026-04-02-aloudata-skills-and-memory-fix.md: Session: 2026-04-02 07:51 UTC\n- workspace/memory/2026-04-02-cloudflare-worker-domain-routi.md: Session: 2026-04-02 00:57:13 UTC\n- workspace/memory/2026-04-02-lancedb-autocapture-recall.md: Session: 2026-04-02 04:53:06 UTC\n- workspace/memory/2026-04-02-ollama-num-ctx-fix.md: Session: 2026-04-02 05:51:30 UTC\n- workspace/memory/2026-04-02-zhipu-cloudflare.md: 2026-04-02 Daily Notes\n- workspace/memory/2026-04-02-zhipu-worker.md: 2026-04-02 日記\n- workspace/memory/2026-04-03-163-email-imap-id-config.md: Session: 2026-04-03 04:21:23 UTC\n- workspace/memory/2026-04-03-stock-report-email-cron.md: Session: 2026-04-03 08:22:34 UTC\n- workspace/memory/2026-04-03.md: 2026-04-03 Daily Memory\n- workspace/memory/2026-04-07.md: Memory Flush — 2026-04-07（凌晨 01:02）\n- workspace/memory/2026-04-08-1006.md: Session: 2026-04-08 10:06:52 UTC\n- workspace/memory/2026-04-08.md: Session Memory — 2026-04-08\n- workspace/memory/2026-04-09-0746.md: Session: 2026-04-09 07:46:10 UTC\n- workspace/memory/2026-04-09-0805.md: Session: 2026-04-09 08:05:38 UTC\n- workspace/memory/2026-04-09-0844.md: Session: 2026-04-09 08:44:25 UTC\n- workspace/memory/2026-04-09-0917.md: Session: 2026-04-09 09:17:49 UTC\n- workspace/memory/2026-04-09-0919.md: Session: 2026-04-09 09:19:08 UTC\n- workspace/memory/2026-04-09-compaction-error.md: Session: 2026-04-09 09:18:46 UTC\n- workspace/memory/2026-04-09-modal-overlay-dimming.md: Session: 2026-04-09 00:19:52 UTC\n- workspace/memory/2026-04-09-session-startup.md: Session: 2026-04-09 09:19:12 UTC\n- Obsidian Vault/台南美食.md: 台南美食\n- Obsidian Vault/歡迎.md: 這是你的新儲存庫 *vault*.\n- workspace/notes/movies.md: 日劇觀察筆記\n- workspace/notes/open-loops.md: open-loops.md\n- workspace/notes/openclaw-weixin-install-troubleshooting.md: OpenClaw 微信插件安裝故障排查\n- workspace/notes/weixin-plugin-install-guide.md: 微信插件安裝指南\n- workspace/.learnings/ERRORS.md: Errors Log\n- workspace/.learnings/FEATURE_REQUESTS.md: Feature Requests Log\n- workspace/.learnings/LEARNINGS.md: LEARNINGS.md - 錯誤與修正記錄\n- workspace/.learnings/SKILL-TEMPLATE.md: Skill Template\n- workspace/notes/projects/163-email-monitor.md: 163 郵箱監控系統\n- workspace/notes/projects/backup.md: 備份系統（GitHub 異地備份）\n- workspace/notes/projects/cloudflare.md: Cloudflare 專案\n- workspace/notes/projects/github.md: GitHub Skill 專案記憶\n- workspace/notes/projects/karing-cf-optimization.md: Karing + Cloudflare 連線優化計畫\n- workspace/notes/projects/openclaw-setup.md: OpenClaw Agent 設定記憶\n- workspace/notes/projects/twse-crawler.md: 台股季報爬蟲專案記憶\n- workspace/notes/projects/遊戲試做.md: 遊戲試做 — 專案計畫\n- workspace/notes/projects/龍蝦燈.md: 龍蝦燈 — 專案計畫\n- workspace/notes/research/agent-threat-rule.md: Agent-Threat-Rule 研究\n- workspace/notes/research/glm-skills.md: GLM Skills 研究\n- workspace/notes/research/openclaw-agents-md-sop.md: 研究：OpenClaw AGENTS.md 配置 SOP（微信文章）\n- workspace/notes/research/openharness.md: OpenHarness 研究",
+      "connections": []
+    },
+    {
+      "id": "memory-analysis-2026-04-10",
+      "title": "記憶關聯分析報告 — 2026-04-10 02:00",
+      "description": "- **OpenClaw 微信插件安裝故障排查** ↔ **微信插件安裝指南**  `0.88`",
+      "tags": [],
+      "source": "memory",
+      "path": "memory/archive/analysis-2026-04-10.md",
+      "date": "2026-04-10",
+      "body": "# 記憶關聯分析報告 — 2026-04-10 02:00\n\n分析範圍：35 個 .md 檔案\n\n---\n\n## 高度相關（相似度 > 72%）\n\n- **OpenClaw 微信插件安裝故障排查** ↔ **微信插件安裝指南**  `0.88`\n- **Session: 2026-04-02 04:53:06 UTC** ↔ **Session: 2026-04-08 10:06:52 UTC**  `0.87`\n- **2026-04-02 Daily Notes** ↔ **2026-04-02 日記**  `0.86`\n- **Session: 2026-04-02 05:51:30 UTC** ↔ **Session: 2026-04-08 10:06:52 UTC**  `0.84`\n- **Session: 2026-04-02 04:53:06 UTC** ↔ **Session: 2026-04-02 05:51:30 UTC**  `0.83`\n- **Session: 2026-04-03 08:22:34 UTC** ↔ **Session: 2026-04-08 10:06:52 UTC**  `0.82`\n- **Memory Flush — 2026-04-07（凌晨 01:02）** ↔ **備份系統（GitHub 異地備份）**  `0.80`\n- **open-loops.md** ↔ **台股季報爬蟲專案記憶**  `0.78`\n- **Session: 2026-04-02 04:53:06 UTC** ↔ **Session: 2026-04-03 08:22:34 UTC**  `0.78`\n- **2026-04-03 Daily Memory** ↔ **Memory Flush — 2026-04-07（凌晨 01:02）**  `0.77`\n- **LEARNINGS.md - 錯誤與修正記錄** ↔ **台股季報爬蟲專案記憶**  `0.77`\n- **Session: 2026-04-02 07:51 UTC** ↔ **2026-04-02 日記**  `0.76`\n- **open-loops.md** ↔ **LEARNINGS.md - 錯誤與修正記錄**  `0.76`\n- **2026-04-03 Daily Memory** ↔ **Session Memory — 2026-04-08**  `0.75`\n- **Session: 2026-04-02 05:51:30 UTC** ↔ **Session: 2026-04-03 08:22:34 UTC**  `0.74`\n- **Session: 2026-04-02 00:57:13 UTC** ↔ **Cloudflare 專案**  `0.73`\n- **Session: 2026-04-03 04:21:23 UTC** ↔ **163 郵箱監控系統**  `0.73`\n- **2026-04-02 日記** ↔ **2026-04-03 Daily Memory**  `0.73`\n\n---\n\n## 可能矛盾（相似度 < 22%）\n\n- ⚠️ **日劇觀察筆記** vs **Skill Template**  `0.17`\n\n---\n\n## 全部檔案清單\n\n- workspace/memory/2026-03-19-twse-financial-crawl.md: Session: 2026-03-19 00:29:48 UTC\n- workspace/memory/2026-04-02-aloudata-skills-and-memory-fix.md: Session: 2026-04-02 07:51 UTC\n- workspace/memory/2026-04-02-cloudflare-worker-domain-routi.md: Session: 2026-04-02 00:57:13 UTC\n- workspace/memory/2026-04-02-lancedb-autocapture-recall.md: Session: 2026-04-02 04:53:06 UTC\n- workspace/memory/2026-04-02-ollama-num-ctx-fix.md: Session: 2026-04-02 05:51:30 UTC\n- workspace/memory/2026-04-02-zhipu-cloudflare.md: 2026-04-02 Daily Notes\n- workspace/memory/2026-04-02-zhipu-worker.md: 2026-04-02 日記\n- workspace/memory/2026-04-03-163-email-imap-id-config.md: Session: 2026-04-03 04:21:23 UTC\n- workspace/memory/2026-04-03-stock-report-email-cron.md: Session: 2026-04-03 08:22:34 UTC\n- workspace/memory/2026-04-03.md: 2026-04-03 Daily Memory\n- workspace/memory/2026-04-07.md: Memory Flush — 2026-04-07（凌晨 01:02）\n- workspace/memory/2026-04-08-1006.md: Session: 2026-04-08 10:06:52 UTC\n- workspace/memory/2026-04-08.md: Session Memory — 2026-04-08\n- workspace/notes/movies.md: 日劇觀察筆記\n- workspace/notes/open-loops.md: open-loops.md\n- workspace/notes/openclaw-weixin-install-troubleshooting.md: OpenClaw 微信插件安裝故障排查\n- workspace/notes/weixin-plugin-install-guide.md: 微信插件安裝指南\n- workspace/.learnings/ERRORS.md: Errors Log\n- workspace/.learnings/FEATURE_REQUESTS.md: Feature Requests Log\n- workspace/.learnings/LEARNINGS.md: LEARNINGS.md - 錯誤與修正記錄\n- workspace/.learnings/SKILL-TEMPLATE.md: Skill Template\n- workspace/notes/projects/163-email-monitor.md: 163 郵箱監控系統\n- workspace/notes/projects/backup.md: 備份系統（GitHub 異地備份）\n- workspace/notes/projects/cloudflare.md: Cloudflare 專案\n- workspace/notes/projects/enterprise-knowledge-base.md: 企業知識庫 — 專案計畫\n- workspace/notes/projects/github.md: GitHub Skill 專案記憶\n- workspace/notes/projects/karing-cf-optimization.md: Karing + Cloudflare 連線優化計畫\n- workspace/notes/projects/openclaw-setup.md: OpenClaw Agent 設定記憶\n- workspace/notes/projects/twse-crawler.md: 台股季報爬蟲專案記憶\n- workspace/notes/projects/遊戲試做.md: 遊戲試做 — 專案計畫\n- workspace/notes/projects/龍蝦燈.md: 龍蝦燈 — 專案計畫\n- workspace/notes/research/agent-threat-rule.md: Agent-Threat-Rule 研究\n- workspace/notes/research/glm-skills.md: GLM Skills 研究\n- workspace/notes/research/openclaw-agents-md-sop.md: 研究：OpenClaw AGENTS.md 配置 SOP（微信文章）\n- workspace/notes/research/openharness.md: OpenHarness 研究",
+      "connections": []
+    },
+    {
       "id": "obsidian-locus-of-control-2024",
       "title": "Locus of Control (2024)",
       "description": "title: Locus of Control",
@@ -901,7 +962,7 @@
           },
           {
             "ok": true,
-            "text": "**股票報告郵件**：每週一～五 07:00，下次 2026-04-09（四）07:00；已修復 msg[\"Subject\"] ✅；engine=cascade ✅；tavily 加入 cascade ✅"
+            "text": "**股票報告郵件**：每週一～五 07:00，下次 2026-04-13（一）07:00；已修復 msg[\"Subject\"] ✅；engine=cascade ✅；tavily 加入 cascade ✅；Feishu announce to 已設定（p2p: oc_d8f9eb3eb4ec20d70cdcc198b2749534）✅"
           },
           {
             "ok": true,
@@ -917,7 +978,7 @@
           },
           {
             "ok": true,
-            "text": "**MemPalace**：✅ 已安裝；Palace 路徑 `~/.mempalace/palace`；1876 drawers"
+            "text": "**MemPalace**：✅ 已安裝；Palace 路徑 `~/.mempalace/palace`；1876 drawers；**02:00 自動記憶歸檔（記憶歸檔 → 分析 → GitHub push → 更新 CF Dashboard）**，Log: `/tmp/memory-archive.log`"
           },
           {
             "ok": true,
@@ -1010,12 +1071,12 @@
         "trigger": "LaunchAgent: 開機自動",
         "schedule": "LaunchAgent",
         "nextRun": "⚠️ 運行中",
-        "lastRun": "PID 35441",
+        "lastRun": "PID 15862",
         "status": "active",
         "history": [
           {
             "ok": false,
-            "message": "ai.openclaw.gateway — Status: 1, PID: 35441"
+            "message": "ai.openclaw.gateway — Status: 1, PID: 15862"
           }
         ]
       },
